@@ -5,7 +5,7 @@ from modules.rag.ingestion.base import BaseChunker
 
 
 class RecursiveChunker(BaseChunker):
-    def __init__(self, chunk_size: int = 1000, chunk_overlap: int = 200):
+    def __init__(self, chunk_size: int = 800, chunk_overlap: int = 100):
         self._splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
