@@ -1,16 +1,18 @@
+import logging
+from dataclasses import dataclass
+
 from langchain_community.document_loaders import WebBaseLoader
 
 from modules.rag.ingestion.base import BaseParser
-from dataclasses import dataclass
-
-import logging 
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
-class Document: 
+class Document:
     metadata: dict
-    content: str 
+    content: str
+
 
 class WebParser(BaseParser):
     def load(self, source: str, options: dict | None = None) -> Document:
