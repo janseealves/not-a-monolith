@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import WebBaseLoader
 
-from modules.not_a_rag.ingestion.base import BaseParser
+from modules.rag.ingestion.base import BaseParser
 from dataclasses import dataclass
 
 import logging 
