@@ -1,17 +1,11 @@
 import logging
-from dataclasses import dataclass
+import re
 
 from langchain_community.document_loaders import WebBaseLoader
 
-from modules.rag.ingestion.base import BaseParser
+from modules.rag.ingestion.base import BaseParser, Document
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class Document:
-    metadata: dict
-    content: str
 
 
 class WebParser(BaseParser):
@@ -25,4 +19,15 @@ class WebParser(BaseParser):
             raise ValueError(f"No content found at {source}")
 
         logger.debug("Document loaded with metadata: %s", doc[0].metadata)
-        return Document(metadata=doc[0].metadata, content=doc[0].page_content)
+        return Document(
+            metadata=doc[0].metadata, content=self._clean(doc[0].page_content)
+        )
+
+    def _clean(self, raw_content: str) -> str:
+        # Remove multiple spaces and newlines
+        content = re.sub(r" {2,}", " ", raw_content)
+
+        # Replace multiple newlines with a maximum of two
+        content = re.sub(r"\n{3,}", "\n\n", raw_content)
+
+        return content.strip()
