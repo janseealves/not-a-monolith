@@ -31,6 +31,6 @@ class BaseChunker(ABC):
 
 class BaseIndexer(ABC):
     @abstractmethod
-    def index(self, source: str) -> list[Chunk]:
-        """Indexa documentos a partir de uma fonte, realizando parsing e chunking."""
+    def index(self, chunks: list[Chunk]) -> None:
+        """Indexa e armazena chunks em um banco de dados"""
         ...
