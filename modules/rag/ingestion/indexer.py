@@ -1,16 +1,14 @@
 import logging
 
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_openai import OpenAIEmbeddings
+from langchain_core.vectorstores import VectorStore
 from modules.rag.ingestion.base import BaseIndexer, Chunk
 
 logger = logging.getLogger(__name__)
 
 
-class OpenAIIndexer(BaseIndexer):
-    def __init__(self):
-        self._embedding = OpenAIEmbeddings()
-        self._vector_store = InMemoryVectorStore(embedding=self._embedding)
+class VectorStoreIndexer(BaseIndexer):
+    def __init__(self, vector_store: VectorStore):
+        self._vector_store = vector_store
 
     def index(self, chunks: list[Chunk]) -> None:
         logger.info("Indexing %d chunks", len(chunks))
