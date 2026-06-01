@@ -1,18 +1,6 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 
-
-@dataclass
-class Document:
-    metadata: dict
-    content: str
-
-
-@dataclass
-class Chunk:
-    source: dict
-    number: tuple[int, int]
-    content: str
+from langchain_core.documents import Document
 
 
 class BaseParser(ABC):
@@ -24,13 +12,13 @@ class BaseParser(ABC):
 
 class BaseChunker(ABC):
     @abstractmethod
-    def split(self, document: Document) -> list[Chunk]:
+    def split(self, document: Document) -> list[Document]:
         """Divide documentos em chunks menores."""
         ...
 
 
 class BaseIndexer(ABC):
     @abstractmethod
-    def index(self, chunks: list[Chunk]) -> None:
+    def index(self, chunks: list[Document]) -> None:
         """Indexa e armazena chunks em um banco de dados"""
         ...
