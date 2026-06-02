@@ -65,6 +65,7 @@ class RAGService:
         chunks = self.search(query, top_k)
 
         if not chunks:
+            logger.warning(f"No relevant chunks found for query: {query}")
             return "Desculpe, não encontrei informações relevantes para sua pergunta."
 
         # TODO: extrair toda a lógica abaixo para um package 'generation' e usar um template engine para montar o prompt.
