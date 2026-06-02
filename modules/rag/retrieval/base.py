@@ -12,6 +12,6 @@ class RetrievedDocument:
 
 class BaseRetriever(ABC):
     @abstractmethod
-    def retrieve(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
+    def search(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
         """Recupera documentos relevantes para uma query."""
         ...
