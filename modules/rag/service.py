@@ -34,7 +34,10 @@ class RAGService:
     @classmethod
     def with_defaults(cls, settings: Settings | None = None) -> "RAGService":
         settings = settings or default_settings
-        embeddings = OpenAIEmbeddings(model=settings.EMBEDDINGS_MODEL, api_key=settings.LLM_API_KEY.get_secret_value())
+        embeddings = OpenAIEmbeddings(
+            model=settings.EMBEDDINGS_MODEL,
+            api_key=settings.LLM_API_KEY.get_secret_value(),
+        )
         vector_store = InMemoryVectorStore(embeddings)
         llm = init_chat_model(
             f"openai:{settings.LLM_MODEL}",
@@ -64,7 +67,7 @@ class RAGService:
         if not chunks:
             return "Desculpe, não encontrei informações relevantes para sua pergunta."
 
-        # TODO: extrair toda a lógica abaixo para um package 'generation' e usar um template engine para montar o prompt
+        # TODO: extrair toda a lógica abaixo para um package 'generation' e usar um template engine para montar o prompt.
         context = "\n\n".join(
             f"[{idx + 1}] {chunk.document.page_content} (fonte: {chunk.document.metadata.get('source', 'desconhecida')})"
             for idx, chunk in enumerate(chunks)
