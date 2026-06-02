@@ -85,7 +85,7 @@ class RAGService:
         """
         try:
             response = self._llm.invoke(prompt)
-            return response.text.strip()
+            return response.content
         except Exception as e:
             logger.error(f"Error occurred while invoking LLM: {e}")
             return "Desculpe, ocorreu um erro ao processar sua pergunta."
