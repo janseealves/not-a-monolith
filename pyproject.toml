@@ -49,8 +49,8 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.poe.tasks]
-lint = "ruff check --fix modules/ shared/"
-format = "ruff format modules/ shared/"
+lint = "ruff check --fix"
+format = "ruff format"
 
 [tool.poe.tasks.check]
 sequence = ["lint", "format"]
