@@ -48,18 +48,18 @@ class AskResponse(BaseModel):
 
 
 @router.post("/ingest", status_code=201, response_model=IngestResponse)
-async def ingest(service: RAGServiceDeps, request: IngestRequest):
-    await service.ingest(request.source)
+def ingest(service: RAGServiceDeps, request: IngestRequest):
+    service.ingest(request.source)
     return IngestResponse(message="Documento ingerido com sucesso.")
 
 
 @router.post("/search", status_code=200, response_model=SearchResponse)
-async def search(service: RAGServiceDeps, request: QueryRequest):
-    results = await service.search(request.query, request.top_k)
+def search(service: RAGServiceDeps, request: QueryRequest):
+    results = service.search(request.query, request.top_k)
     return SearchResponse(results=results)
 
 
 @router.post("/ask", status_code=200, response_model=AskResponse)
-async def ask(service: RAGServiceDeps, request: QueryRequest):
-    response = await service.ask(request.query, request.top_k)
+def ask(service: RAGServiceDeps, request: QueryRequest):
+    response = service.ask(request.query, request.top_k)
     return AskResponse(answer=response)
