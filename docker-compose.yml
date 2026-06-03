@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      target: developer     # usa o estágio "developer" do Dockerfile
+    env_file: .env            # injeta DATABASE_URL e cia. no container
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      # Bind mount: espelha a pasta do host (".") dentro do container ("/app").
+      # Sintaxe é sempre origem(host):destino(container).
+      # É a MESMA pasta vista dos dois lados — editar um .py no host muda na hora
+      # dentro do container, e o uvicorn --reload reinicia sozinho. Sem rebuild.
+      - .:/app
+      # Volume anônimo (sem ":", não aponta pro host): isola só o /app/.venv.
+      # A linha de cima espelharia TUDO, inclusive a .venv local do host (que tem
+      # paths da minha máquina e quebraria dentro do container). Como /app/.venv é
+      # mais específico que /app, este mount "vence" e protege a .venv que o uv
+      # montou no build. Resultado: código vem do host, .venv vem do container.
+      - /app/.venv
