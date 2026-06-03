@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
@@ -16,7 +17,6 @@ class BaseRetriever(ABC):
         """Recupera documentos relevantes para uma query."""
         ...
 
-    @abstractmethod
     async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
         """Recupera documentos relevantes para uma query de forma assíncrona."""
-        ...
+        return await asyncio.to_thread(self.search, query, top_k)
