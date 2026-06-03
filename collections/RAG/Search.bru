@@ -1,0 +1,34 @@
+meta {
+  name: Search
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/rag/search
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "query": "O que é um monolito modular?",
+    "top_k": 5
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.results: isArray
+}
+
+tests {
+  test("cada chunk tem content (string) e score (number)", function () {
+    const results = res.getBody().results;
+    expect(results).to.be.an("array");
+    if (results.length > 0) {
+      expect(results[0]).to.have.property("content").that.is.a("string");
+      expect(results[0]).to.have.property("score").that.is.a("number");
+    }
+  });
+}

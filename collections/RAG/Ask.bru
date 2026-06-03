@@ -1,0 +1,23 @@
+meta {
+  name: Ask
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/rag/ask
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "query": "O que é um monolito modular?",
+    "top_k": 5
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.answer: isString
+}
