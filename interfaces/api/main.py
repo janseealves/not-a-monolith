@@ -5,12 +5,12 @@ from interfaces.api.routes.rag import router as rag_router
 app = FastAPI()
 
 
-@app.get("/")
+@app.get("/", tags=["Root"])
 async def root():
     return {"message": "Hello, World!"}
 
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "ok"}
 
