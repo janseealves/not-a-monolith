@@ -16,6 +16,39 @@ A aplicação sobe via Docker Compose, usando o estágio `developer` do `Dockerf
   O `.env` é injetado no container em runtime (`env_file` no compose) e **não** é
   copiado para a imagem — ele está no `.dockerignore` e no `.gitignore`.
 
+## Modelos locais (Ollama)
+
+A imagem da aplicação **não** carrega modelos. A inferência roda num
+[Ollama](https://ollama.com/) que sobe **no host** (fora do Compose) — assim ele
+aproveita a GPU da máquina sem `nvidia-container-toolkit`, e os pesos baixados
+persistem entre `docker compose down`.
+
+A app depende de dois modelos, definidos em `shared/config.py`:
+
+| Variável           | Default               | Uso                     |
+| ------------------ | --------------------- | ----------------------- |
+| `LLM_MODEL`        | `qwen2.5:3b`          | geração de respostas    |
+| `EMBEDDINGS_MODEL` | `embeddinggemma:300m` | embeddings (vetores)    |
+
+Antes de subir a aplicação, com o Ollama rodando no host, baixe os dois:
+
+```bash
+ollama pull qwen2.5:3b
+ollama pull embeddinggemma:300m
+ollama list                      # confirma que ambos estão presentes
+```
+
+> Se você mudar `LLM_MODEL`/`EMBEDDINGS_MODEL` no `.env`, lembre de dar
+> `ollama pull` no modelo novo — senão a primeira chamada falha com *model not found*.
+
+Como a app roda no container e o Ollama no host, o container alcança o host por
+`host.docker.internal` (habilitado via `extra_hosts` no `docker-compose.yml`).
+A URL vai no `.env`, dentro de `LLM_MODEL_KWARGS`:
+
+```bash
+LLM_MODEL_KWARGS={"base_url": "http://host.docker.internal:11434"}
+```
+
 ## Subir a aplicação
 
 ```bash

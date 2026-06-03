@@ -6,4 +6,4 @@
 
 ## Documentação
 
-- [Rodando com Docker](docs/docker.md) — subir a aplicação, hot-reload e dependências.
+- [Rodando com Docker](docs/docker-build.md) — subir a aplicação, hot-reload e dependências.
