@@ -28,3 +28,12 @@ class HybridRetriever(BaseRetriever):
 
     def search(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
         pass
+
+
+# TODO: implementar um retriever que decomponha a query em subqueries e faça múltiplas buscas, combinando os resultados (ex: usando um modelo para gerar reformulações da query original)
+class MultiQueryRetriever(BaseRetriever):
+    def __init__(self, vector_store: VectorStore):
+        self._vector_store = vector_store
+
+    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
+        pass

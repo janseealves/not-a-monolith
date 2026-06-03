@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class WebParser(BaseParser):
-    def load(self, source: str, options: dict | None = None) -> Document:
+    async def load(self, source: str, options: dict | None = None) -> Document:
         loader = WebBaseLoader(source, **(options or {}))
         logger.info("Loading document from %s", source)
-        doc = loader.load()
+        doc = await loader.aload()
 
         if not doc:
             logger.warning("No content found at %s", source)

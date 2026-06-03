@@ -48,9 +48,9 @@ class AskResponse(BaseModel):
 
 
 @router.post("/ingest", status_code=201, response_model=IngestResponse)
-def ingest(service: RAGServiceDeps, request: IngestRequest):
-    service.ingest(request.source)
-    return IngestResponse(message="Documento ingerido com sucesso.")
+async def ingest(service: RAGServiceDeps, request: IngestRequest):
+    await service.ingest(request.source)
+    return IngestResponse(message="Documento processado com sucesso.")
 
 
 @router.post("/search", status_code=200, response_model=SearchResponse)

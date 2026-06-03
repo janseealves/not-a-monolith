@@ -54,10 +54,10 @@ class RAGService:
             llm=llm,
         )
 
-    def ingest(self, source: str) -> None:
-        document = self._parser.load(source)
+    async def ingest(self, source: str) -> None:
+        document = await self._parser.load(source)
         chunks = self._chunker.split(document)
-        self._indexer.index(chunks)
+        await self._indexer.index(chunks)
 
     def search(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
         return self._retriever.search(query, top_k)
