@@ -2,7 +2,7 @@ import logging
 
 from langchain.chat_models import BaseChatModel, init_chat_model
 from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 
 from modules.rag.ingestion.base import BaseChunker, BaseIndexer, BaseParser
 from modules.rag.ingestion.chunker import RecursiveChunker
@@ -34,14 +34,15 @@ class RAGService:
     @classmethod
     def with_defaults(cls, settings: Settings | None = None) -> "RAGService":
         settings = settings or default_settings
-        embeddings = OpenAIEmbeddings(
+        embeddings = OllamaEmbeddings(
             model=settings.EMBEDDINGS_MODEL,
-            api_key=settings.LLM_API_KEY.get_secret_value(),
         )
         vector_store = InMemoryVectorStore(embeddings)
         llm = init_chat_model(
-            f"openai:{settings.LLM_MODEL}",
+            model=settings.LLM_MODEL,
+            model_provider=settings.LLM_MODEL_PROVIDER,
             api_key=settings.LLM_API_KEY.get_secret_value(),
+            kwargs={"baseURL": "http://localhost:11434"},
         )
 
         # único lugar do módulo que conhece as classes concretas
