@@ -19,3 +19,5 @@ services:
       # mais específico que /app, este mount "vence" e protege a .venv que o uv
       # montou no build. Resultado: código vem do host, .venv vem do container.
       - /app/.venv
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal"
