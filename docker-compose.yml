@@ -1,3 +1,5 @@
+name: monolith
+
 services:
   app:
     build:
@@ -21,3 +23,30 @@ services:
       - /app/.venv
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal"
+    depends_on:
+      ollama-pull:
+        condition: service_completed_successfully  # Garante que o app só inicie depois do ollama-pull terminar e estar saudável 
+  ollama: 
+    image: alpine/ollama:0.24.0
+    volumes:
+      - ollama-models:/root/.ollama  # Volume para persistir os dados do Ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "ls"]  # Comando para verificar a saúde do serviço
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  ollama-pull: 
+    image: alpine/ollama:0.24.0
+    depends_on:
+      ollama:
+        condition: service_healthy  # Garante que o ollama-pull só inicie depois do ollama estar saudável
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["sh", "-c", "ollama pull qwen2.5:3b && ollama pull embeddinggemma:300m"]  # Comando para baixar o modelo específico
+    restart: "no"  # Não reinicia após a execução do comando
+
+volumes:
+  ollama-models:  # Volume nomeado para os dados do Ollama
