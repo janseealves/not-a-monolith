@@ -1,3 +1,6 @@
+import logging
+import sys
+
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,3 +23,12 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def setup_logger(level="INFO") -> None:
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s - [%(levelname)s] - %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stdout,
+    )
