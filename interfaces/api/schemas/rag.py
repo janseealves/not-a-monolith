@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class IngestRequest(BaseModel):
-    source: HttpUrl = Field(..., description="URL do documento a ser ingerido")
+    source: str = Field(..., description="URL do documento a ser ingerido")
 
 
 class IngestResponse(BaseModel):

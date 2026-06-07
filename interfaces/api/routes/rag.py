@@ -8,6 +8,7 @@ from interfaces.api.schemas.rag import (
     IngestRequest,
     IngestResponse,
     QueryRequest,
+    RetrievedChunk,
     SearchResponse,
 )
 from modules.rag.service import RAGService
@@ -28,8 +29,13 @@ async def ingest(service: RAGServiceDeps, request: IngestRequest):
 
 @router.post("/search", status_code=status.HTTP_200_OK, response_model=SearchResponse)
 def search(service: RAGServiceDeps, request: QueryRequest):
-    results = service.search(request.query, request.top_k)
-    return SearchResponse(results=results)
+    r = service.search(request.query, request.top_k)
+    return SearchResponse(results=[
+        RetrievedChunk(
+            content=doc.document.page_content,
+            score=doc.score,
+        ) for doc in r
+    ])
 
 
 @router.post("/ask", status_code=status.HTTP_200_OK, response_model=AskResponse)
