@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     EMBEDDINGS_MODEL: str = "embeddinggemma:300m"
     LANGSMITH_API_KEY: SecretStr | None = None
     LANGSMITH_TRACING: bool = False
+    LOGGING_LEVEL: str = "INFO"
 
     model_config = SettingsConfigDict(
         env_file=".env",

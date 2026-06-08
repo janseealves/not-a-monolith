@@ -8,9 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from interfaces.api.routes.meta import router as meta_router
 from interfaces.api.routes.rag import router as rag_router
 from modules.rag.service import RAGService
-from shared.config import setup_logger
+from shared.config import settings, setup_logger
 
-setup_logger(level="INFO")
+setup_logger(level=settings.LOGGING_LEVEL)
 
 logger = logging.getLogger(__name__)
 
