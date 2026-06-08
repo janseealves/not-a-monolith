@@ -19,7 +19,15 @@ class SemanticRetriever(BaseRetriever):
             logger.warning("No chunks retrieved.")
             return []
 
-        return [RetrievedDocument(document=doc, score=score) for doc, score in result]
+        logger.debug(
+            "Retrieved chunks: %d | Preview: %s",
+            len(result),
+            result[0][0].page_content[:50],
+        )
+        return [
+            RetrievedDocument(document=document, score=score)
+            for document, score in result
+        ]
 
 
 class HybridRetriever(BaseRetriever):
