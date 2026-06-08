@@ -36,13 +36,14 @@ class RAGService:
         settings = settings or default_settings
         embeddings = OllamaEmbeddings(
             model=settings.EMBEDDINGS_MODEL,
+            base_url=settings.OLLAMA_BASE_URL,
         )
         vector_store = InMemoryVectorStore(embeddings)
         llm = init_chat_model(
             model=settings.LLM_MODEL,
             model_provider=settings.LLM_MODEL_PROVIDER,
             api_key=settings.LLM_API_KEY.get_secret_value(),
-            kwargs={"baseURL": "http://localhost:11434"},
+            base_url=settings.OLLAMA_BASE_URL,
         )
 
         # único lugar do módulo que conhece as classes concretas
