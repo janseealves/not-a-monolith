@@ -10,19 +10,20 @@ logger = logging.getLogger(__name__)
 
 
 class WebParser(BaseParser):
+    # TODO: Implementar meu próprio WebLoader c/ httpx + BeautifulSoup para ter mais controle sobre o processo de parsing e limpeza do conteúdo
     async def load(self, source: str, options: dict | None = None) -> Document:
         loader = WebBaseLoader(source, **(options or {}))
         logger.info("Loading document from %s", source)
-        doc = await loader.aload()
+        docs = [doc async for doc in loader.alazy_load()]
 
-        if not doc:
+        if not docs:
             logger.warning("No content found at %s", source)
             raise ValueError(f"No content found at {source}")
 
-        logger.debug("Document loaded with metadata: %s", doc[0].metadata)
+        logger.debug("Document loaded with metadata: %s", docs[0].metadata)
         return Document(
-            page_content=self._clean(doc[0].page_content),
-            metadata=doc[0].metadata,
+            page_content=self._clean(docs[0].page_content),
+            metadata=docs[0].metadata,
         )
 
     def _clean(self, raw_content: str) -> str:
