@@ -8,7 +8,6 @@ services:
     env_file: .env            # injeta DATABASE_URL e cia. no container
     ports:
       - "8000:8000"
-    restart: unless-stopped
     volumes:
       # Bind mount: espelha a pasta do host (".") dentro do container ("/app").
       # Sintaxe é sempre origem(host):destino(container).
@@ -23,4 +22,26 @@ services:
       - /app/.venv
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal"
+    depends_on:
+      db:
+        condition: service_healthy  # Garante que o app só inicie depois do db estar saudável
 
+  db: 
+    image: dhi.io/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["pg_isready", "-U", "${POSTGRES_USER}", "-d", "postgres"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  db_data:
