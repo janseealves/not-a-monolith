@@ -28,8 +28,8 @@ async def ingest(service: RAGServiceDeps, request: IngestRequest):
 
 
 @router.post("/search", status_code=status.HTTP_200_OK, response_model=SearchResponse)
-def search(service: RAGServiceDeps, request: QueryRequest):
-    r = service.search(request.query, request.top_k)
+async def search(service: RAGServiceDeps, request: QueryRequest):
+    r = await service.search(request.query, request.top_k)
     return SearchResponse(
         results=[
             RetrievedChunk(
@@ -42,6 +42,6 @@ def search(service: RAGServiceDeps, request: QueryRequest):
 
 
 @router.post("/ask", status_code=status.HTTP_200_OK, response_model=AskResponse)
-def ask(service: RAGServiceDeps, request: QueryRequest):
-    response = service.ask(request.query, request.top_k)
+async def ask(service: RAGServiceDeps, request: QueryRequest):
+    response = await service.ask(request.query, request.top_k)
     return AskResponse(answer=response)
