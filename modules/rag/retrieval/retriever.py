@@ -2,7 +2,6 @@ import logging
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -17,30 +16,8 @@ _QUERY_PROMPT = "task: search result | query: {query}"
 
 
 class SemanticRetriever(BaseRetriever):
-    def __init__(self, vector_store: VectorStore):
-        self._vector_store = vector_store
+    """Busca densa por similaridade de vetores no pgvector (índice HNSW)."""
 
-    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
-        logger.info("Retrieving top %d chunks for query: '%s'", top_k, query)
-        result = await self._vector_store.asimilarity_search_with_score(query, k=top_k)
-
-        if not result:
-            logger.warning("No chunks retrieved.")
-            return []
-
-        logger.debug(
-            "Retrieved chunks: %d | Preview: %s",
-            len(result),
-            result[0][0].page_content[:50],
-        )
-        return [
-            RetrievedDocument(document=document, score=score)
-            for document, score in result
-        ]
-
-
-# TODO: Estudar semantic PGVector retriever usando SQLAlchemy, comparando performance com o retriever HNSW.
-class PostgresRetriever(BaseRetriever):
     def __init__(
         self, session_factory: async_sessionmaker, embeddings: Embeddings
     ) -> None:

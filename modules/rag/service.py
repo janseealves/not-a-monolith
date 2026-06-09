@@ -9,7 +9,7 @@ from modules.rag.ingestion.chunker import RecursiveChunker
 from modules.rag.ingestion.indexer import PostgresIndexer
 from modules.rag.ingestion.parser import WebParser
 from modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
-from modules.rag.retrieval.retriever import PostgresRetriever
+from modules.rag.retrieval.retriever import SemanticRetriever
 from shared.config import Settings
 from shared.config import settings as default_settings
 from shared.db.session import SessionLocal
@@ -56,7 +56,7 @@ class RAGService:
             parser=WebParser(),
             chunker=RecursiveChunker(),
             indexer=PostgresIndexer(session_factory, embeddings),
-            retriever=PostgresRetriever(session_factory, embeddings),
+            retriever=SemanticRetriever(session_factory, embeddings),
             llm=llm,
         )
 

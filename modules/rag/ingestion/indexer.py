@@ -4,7 +4,6 @@ from datetime import UTC, datetime
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -16,18 +15,6 @@ logger = logging.getLogger(__name__)
 
 # Prompt de documento do EmbeddingGemma. O título entra no embedding, não é só metadado.
 _DOC_PROMPT = "title: {title} | text: {content}"
-
-
-class VectorStoreIndexer(BaseIndexer):
-    def __init__(self, vector_store: VectorStore):
-        self._vector_store = vector_store
-
-    async def index(self, document: Document, chunks: list[Document]) -> None:
-        logger.info("Indexing %d chunks", len(chunks))
-
-        # O vector store in-memory não tem tabela de documentos; indexa só os chunks.
-        await self._vector_store.aadd_documents(chunks)
-        logger.debug("Indexed %d chunks successfully", len(chunks))
 
 
 class PostgresIndexer(BaseIndexer):
