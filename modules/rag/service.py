@@ -1,17 +1,18 @@
 import logging
 
 from langchain.chat_models import BaseChatModel, init_chat_model
-from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_ollama import OllamaEmbeddings
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from modules.rag.ingestion.base import BaseChunker, BaseIndexer, BaseParser
 from modules.rag.ingestion.chunker import RecursiveChunker
-from modules.rag.ingestion.indexer import VectorStoreIndexer
+from modules.rag.ingestion.indexer import PostgresIndexer
 from modules.rag.ingestion.parser import WebParser
 from modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
 from modules.rag.retrieval.retriever import SemanticRetriever
 from shared.config import Settings
 from shared.config import settings as default_settings
+from shared.db.session import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +33,17 @@ class RAGService:
         self._llm = llm
 
     @classmethod
-    def with_defaults(cls, settings: Settings | None = None) -> "RAGService":
+    def with_defaults(
+        cls,
+        settings: Settings | None = None,
+        session_factory: async_sessionmaker | None = None,
+    ) -> "RAGService":
         settings = settings or default_settings
+        session_factory = session_factory or SessionLocal
         embeddings = OllamaEmbeddings(
             model=settings.EMBEDDINGS_MODEL,
             base_url=settings.OLLAMA_BASE_URL,
         )
-        vector_store = InMemoryVectorStore(embeddings)
         llm = init_chat_model(
             model=settings.LLM_MODEL,
             model_provider=settings.LLM_MODEL_PROVIDER,
@@ -50,21 +55,21 @@ class RAGService:
         return cls(
             parser=WebParser(),
             chunker=RecursiveChunker(),
-            indexer=VectorStoreIndexer(vector_store),
-            retriever=SemanticRetriever(vector_store),
+            indexer=PostgresIndexer(session_factory, embeddings),
+            retriever=SemanticRetriever(session_factory, embeddings),
             llm=llm,
         )
 
     async def ingest(self, source: str) -> None:
         document = await self._parser.load(source)
         chunks = self._chunker.split(document)
-        await self._indexer.index(chunks)
+        await self._indexer.index(document, chunks)
 
-    def search(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
-        return self._retriever.search(query, top_k)
+    async def search(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
+        return await self._retriever.asearch(query, top_k)
 
-    def ask(self, query: str, top_k: int = 5) -> str:
-        chunks = self.search(query, top_k)
+    async def ask(self, query: str, top_k: int = 5) -> str:
+        chunks = await self.search(query, top_k)
 
         if not chunks:
             logger.warning(f"No relevant chunks found for query: {query}")
@@ -86,7 +91,7 @@ class RAGService:
         Resposta:
         """
         try:
-            response = self._llm.invoke(prompt)
+            response = await self._llm.ainvoke(prompt)
             return response.content
         except Exception as e:
             logger.error(f"Error occurred while invoking LLM: {e}")
