@@ -27,6 +27,8 @@ CMD ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--por
 # RUN uv sync --frozen --no-install-project --no-dev
 # COPY . .
 # RUN uv sync --frozen --no-dev
+# RUN playwright install --with-deps chromium
+
 
 # # == Production Final Image == 
 # FROM python:3.13-slim AS production 
