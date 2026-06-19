@@ -4,7 +4,7 @@ from langchain.chat_models import BaseChatModel, init_chat_model
 from langchain_ollama import OllamaEmbeddings
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from modules.rag.ingestion.base import BaseChunker, BaseIndexer, BaseParser
+from modules.rag.ingestion.base import BaseChunker, BaseIndexer, BaseParser, Source
 from modules.rag.ingestion.chunker import RecursiveChunker
 from modules.rag.ingestion.indexer import PostgresIndexer
 from modules.rag.ingestion.parser import WebParser
@@ -60,7 +60,7 @@ class RAGService:
             llm=llm,
         )
 
-    async def ingest(self, source: str) -> None:
+    async def ingest(self, source: Source) -> None:
         document = await self._parser.load(source)
         chunks = self._chunker.split(document)
         await self._indexer.index(document, chunks)

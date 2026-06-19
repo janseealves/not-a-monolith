@@ -1,8 +1,21 @@
+from pathlib import Path
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+from modules.rag.ingestion.base import LocalSource, Source, WebSource
 
 
 class IngestRequest(BaseModel):
-    source: str = Field(..., description="URL do documento a ser ingerido")
+    source: str = Field(..., description="URL ou caminho do documento a ser ingerido")
+    source_type: Literal["web", "local"] = Field(
+        "web", description="Tipo da fonte: 'web' para URLs, 'local' para arquivos"
+    )
+
+    def to_source(self) -> Source:
+        if self.source_type == "local":
+            return LocalSource(path=Path(self.source))
+        return WebSource(url=self.source)
 
 
 class IngestResponse(BaseModel):
