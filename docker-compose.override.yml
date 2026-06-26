@@ -1,0 +1,22 @@
+# Override de DESENVOLVIMENTO.
+# Carregado AUTOMATICAMENTE em `docker compose up` (sem -f), mesclado por cima do
+# docker-compose.yml (que é produção). Aqui mora só o que faz sentido em dev.
+
+services:
+  app:
+    build:
+      target: developer        # troca o estágio prod pelo de dev (todas as deps)
+    # Sobrescreve o command de prod: 1 worker + --reload (reinicia ao salvar arquivo).
+    command: ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
+    volumes:
+      # Bind mount: a MESMA pasta vista dos dois lados. Editar um .py no host muda
+      # na hora dentro do container e o --reload reinicia sozinho. Sem rebuild.
+      - .:/app
+      # Volume anônimo que isola /app/.venv: protege a venv montada no build de ser
+      # sobrescrita pela .venv do host (que tem paths da sua máquina e quebraria).
+      - /app/.venv
+
+  db:
+    ports:
+      # Em dev expomos o Postgres no host pra conectar com DBeaver/psql/etc.
+      - "5432:5432"
