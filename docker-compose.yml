@@ -1,42 +1,47 @@
 name: monolith
 
+# Arquivo BASE = PRODUÇÃO. É o artefato canônico de deploy.
+#
+#   prd : docker compose -f docker-compose.yml up -d --build
+#         (aponta SÓ este arquivo, excluindo o override de dev)
+#
+#   dev : docker compose up --build
+#         (o docker-compose.override.yml carrega automaticamente por cima e
+#          transforma este setup em ambiente de desenvolvimento)
+#
+# ⚠️ Como o override carrega sozinho, NUNCA rode `docker compose up` (sem -f) num
+#    servidor de produção: ele puxaria a config de dev. Em prd use sempre o -f acima.
+
 services:
   app:
     build:
       context: .
-      target: developer     # usa o estágio "developer" do Dockerfile
-    env_file: .env            # injeta DATABASE_URL e cia. no container
+      target: production       # estágio sem deps de dev, código imutável, non-root
+    env_file: .env             # injeta DATABASE_URL, credenciais etc. no container
+    restart: unless-stopped
     ports:
       - "8000:8000"
-    volumes:
-      # Bind mount: espelha a pasta do host (".") dentro do container ("/app").
-      # Sintaxe é sempre origem(host):destino(container).
-      # É a MESMA pasta vista dos dois lados — editar um .py no host muda na hora
-      # dentro do container, e o uvicorn --reload reinicia sozinho. Sem rebuild.
-      - .:/app
-      # Volume anônimo (sem ":", não aponta pro host): isola só o /app/.venv.
-      # A linha de cima espelharia TUDO, inclusive a .venv local do host (que tem
-      # paths da minha máquina e quebraria dentro do container). Como /app/.venv é
-      # mais específico que /app, este mount "vence" e protege a .venv que o uv
-      # montou no build. Resultado: código vem do host, .venv vem do container.
-      - /app/.venv
+    # Múltiplos workers para aproveitar os núcleos da máquina. SEM --reload.
+    # Regra de bolso: ~2 x núcleos do host.
+    command: ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]
     extra_hosts:
-      - "host.docker.internal:host-gateway"  # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal"
+      # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal".
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
-        condition: service_healthy  # Garante que o app só inicie depois do db estar saudável
+        condition: service_healthy  # só sobe o app depois do db estar saudável
 
-  db: 
+  db:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: unless-stopped
+    # Sem `ports`: em prd o Postgres fica só na rede interna do Compose, não no host.
+    # (o override de dev expõe a 5432 para você conectar com DBeaver/psql.)
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
       interval: 1m30s
