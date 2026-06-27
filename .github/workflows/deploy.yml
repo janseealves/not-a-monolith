@@ -1,13 +1,15 @@
+name: Deploy · Production
 run-name: Deploy to production by @${{ github.actor }}
 on:
   push:
-    branches: 
+    branches:
       - prd
 concurrency:
-  group: deploy
+  group: production
   cancel-in-progress: false
 jobs:
   deploy:
+    name: Build & Deploy
     runs-on: [self-hosted, linux, ARM64]
     steps:
       - uses: actions/checkout@v4
