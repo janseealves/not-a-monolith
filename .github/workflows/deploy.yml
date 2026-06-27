@@ -1,0 +1,18 @@
+run-name: Deploy to production by @${{ github.actor }}
+on:
+  push:
+    branches: 
+      - prd
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & restart
+        run: |
+          cp /not-a-monolith/.env .env
+          docker compose -f docker-compose.yml up -d --build --remove-orphans
+          docker image prune -f
