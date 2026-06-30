@@ -10,7 +10,9 @@ class Settings(BaseSettings):
     LLM_API_KEY: SecretStr | None = None
     LLM_MODEL: str = "qwen2.5:3b"
     LLM_MODEL_PROVIDER: str = "ollama"
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    # Chat pode ir pra cloud; embeddings ficam self-hosted (consistência do índice).
+    LLM_BASE_URL: str = "http://localhost:11434"
+    EMBEDDINGS_BASE_URL: str = "http://localhost:11434"
     EMBEDDINGS_MODEL: str = "embeddinggemma:300m"
     LANGSMITH_API_KEY: SecretStr | None = None
     LANGSMITH_TRACING: bool = False

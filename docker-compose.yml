@@ -31,6 +31,14 @@ services:
       db:
         condition: service_healthy  # só sobe o app depois do db estar saudável
 
+  # Ollama self-hosted só para embeddings (o chat vai pra cloud via LLM_BASE_URL).
+  # 1º up: docker compose exec ollama ollama pull embeddinggemma:300m
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+
   db:
     image: pgvector/pgvector:pg16
     environment:
@@ -51,3 +59,4 @@ services:
 
 volumes:
   db_data:
+  ollama_data:

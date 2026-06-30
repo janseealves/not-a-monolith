@@ -6,6 +6,9 @@ services:
   app:
     build:
       target: developer        # troca o estágio prod pelo de dev (todas as deps)
+    # localhost do container = host, pra alcançar o Ollama do PC em 11434.
+    # `ports`/`extra_hosts` passam a ser ignorados; Postgres vai por localhost:5432.
+    network_mode: host
     # Sobrescreve o command de prod: 1 worker + --reload (reinicia ao salvar arquivo).
     command: ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
     volumes:
@@ -20,3 +23,7 @@ services:
     ports:
       # Em dev expomos o Postgres no host pra conectar com DBeaver/psql/etc.
       - "5432:5432"
+
+  # Em dev usamos o Ollama do host; o container do base fica fora via profile.
+  ollama:
+    profiles: ["production"]
