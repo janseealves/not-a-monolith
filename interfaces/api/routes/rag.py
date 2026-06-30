@@ -26,6 +26,7 @@ async def ingest(service: RAGServiceDeps, request: IngestRequest):
     await service.ingest(request.to_source())
     return IngestResponse(message="Documento processado com sucesso.")
 
+
 @router.post("/search", status_code=status.HTTP_200_OK, response_model=SearchResponse)
 async def search(service: RAGServiceDeps, request: QueryRequest):
     r = await service.search(request.query, request.top_k)
