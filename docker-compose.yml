@@ -32,6 +32,8 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully  # app só sobe com o schema migrado
+      ollama-pull:
+        condition: service_completed_successfully  # ...e com o modelo de embeddings baixado
 
   # Roda `alembic upgrade head` uma vez e termina. Reusa a imagem de produção.
   migrate:
@@ -45,12 +47,29 @@ services:
         condition: service_healthy
 
   # Ollama self-hosted só para embeddings (o chat vai pra cloud via LLM_BASE_URL).
-  # 1º up: docker compose exec ollama ollama pull embeddinggemma:300m
   ollama:
-    image: ollama/ollama:latest
+    image: alpine/ollama:0.24.0
     restart: unless-stopped
     volumes:
       - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "ls"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  # Baixa o EMBEDDINGS_MODEL uma vez e termina. Idempotente (no-op se já está no volume).
+  ollama-pull:
+    image: alpine/ollama:0.24.0
+    env_file: .env
+    environment:
+      OLLAMA_HOST: ollama:11434
+    entrypoint: ["sh", "-c", "ollama pull $$EMBEDDINGS_MODEL"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
 
   db:
     image: pgvector/pgvector:pg16
