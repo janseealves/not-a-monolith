@@ -29,7 +29,20 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       db:
-        condition: service_healthy  # só sobe o app depois do db estar saudável
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully  # app só sobe com o schema migrado
+
+  # Roda `alembic upgrade head` uma vez e termina. Reusa a imagem de produção.
+  migrate:
+    build:
+      context: .
+      target: production
+    env_file: .env
+    command: ["uv", "run", "alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
 
   # Ollama self-hosted só para embeddings (o chat vai pra cloud via LLM_BASE_URL).
   # 1º up: docker compose exec ollama ollama pull embeddinggemma:300m

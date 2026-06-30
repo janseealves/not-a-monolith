@@ -19,6 +19,12 @@ services:
       # sobrescrita pela .venv do host (que tem paths da sua máquina e quebraria).
       - /app/.venv
 
+  # host network pra alcançar o Postgres em localhost:5432, igual ao app.
+  migrate:
+    build:
+      target: developer
+    network_mode: host
+
   db:
     ports:
       # Em dev expomos o Postgres no host pra conectar com DBeaver/psql/etc.
