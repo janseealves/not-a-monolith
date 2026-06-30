@@ -42,13 +42,18 @@ class RAGService:
         session_factory = session_factory or SessionLocal
         embeddings = OllamaEmbeddings(
             model=settings.EMBEDDINGS_MODEL,
-            base_url=settings.OLLAMA_BASE_URL,
+            base_url=settings.EMBEDDINGS_BASE_URL,
         )
+
+        # Implementação OLLAMA
+        key = settings.LLM_API_KEY.get_secret_value() if settings.LLM_API_KEY else None
+
+        client_kwargs = {"headers": {"Authorization": f"Bearer {key}"}} if key else {}
         llm = init_chat_model(
             model=settings.LLM_MODEL,
             model_provider=settings.LLM_MODEL_PROVIDER,
-            api_key=settings.LLM_API_KEY.get_secret_value(),
-            base_url=settings.OLLAMA_BASE_URL,
+            base_url=settings.LLM_BASE_URL,
+            client_kwargs=client_kwargs,
         )
 
         # único lugar do módulo que conhece as classes concretas
