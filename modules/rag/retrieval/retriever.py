@@ -5,7 +5,7 @@ from langchain_core.embeddings import Embeddings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from modules.rag.models import Chunk
+from modules.rag.models import Chunk, collection_documents
 from modules.rag.models import Document as DocumentModel
 from modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
 
@@ -24,8 +24,15 @@ class SemanticRetriever(BaseRetriever):
         self._session_factory = session_factory
         self._embeddings = embeddings
 
-    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
-        logger.info("Retrieving top %d chunks for query: '%s'", top_k, query)
+    async def asearch(
+        self, query: str, collection_id: int, top_k: int = 5
+    ) -> list[RetrievedDocument]:
+        logger.info(
+            "Retrieving top %d chunks for query: '%s' (collection=%d)",
+            top_k,
+            query,
+            collection_id,
+        )
         query_vector = await self._embeddings.aembed_query(
             _QUERY_PROMPT.format(query=query)
         )
@@ -41,6 +48,11 @@ class SemanticRetriever(BaseRetriever):
                 distance,
             )
             .join(DocumentModel, Chunk.document_id == DocumentModel.id)
+            .join(
+                collection_documents,
+                collection_documents.c.document_id == DocumentModel.id,
+            )
+            .where(collection_documents.c.collection_id == collection_id)
             .order_by(distance)
             .limit(top_k)
         )
@@ -77,7 +89,9 @@ class HybridRetriever(BaseRetriever):
         self._session_factory = session_factory
         self._embeddings = embeddings
 
-    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
+    async def asearch(
+        self, query: str, collection_id: int, top_k: int = 5
+    ) -> list[RetrievedDocument]:
         pass
 
 
@@ -87,5 +101,7 @@ class MultiQueryRetriever(BaseRetriever):
         self._session_factory = session_factory
         self._embeddings = embeddings
 
-    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
+    async def asearch(
+        self, query: str, collection_id: int, top_k: int = 5
+    ) -> list[RetrievedDocument]:
         pass

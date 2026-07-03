@@ -1,35 +1,42 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import StreamingResponse
 
-from interfaces.api.dependencies import get_rag_service
+from interfaces.api.dependencies import get_collection, get_rag_service
 from interfaces.api.schemas.rag import (
-    AskResponse,
     IngestRequest,
     IngestResponse,
     QueryRequest,
     RetrievedChunk,
     SearchResponse,
 )
+from modules.rag.models import Collection
 from modules.rag.service import RAGService
+from shared.streaming import sse_stream
 
-router = APIRouter(prefix="/rag", tags=["RAG"])
+router = APIRouter(prefix="/rag/collections/{collection_id}", tags=["RAG"])
 
 
 RAGServiceDeps = Annotated[RAGService, Depends(get_rag_service)]
+CollectionDeps = Annotated[Collection, Depends(get_collection)]
 
 
 @router.post(
     "/ingest", status_code=status.HTTP_201_CREATED, response_model=IngestResponse
 )
-async def ingest(service: RAGServiceDeps, request: IngestRequest):
-    await service.ingest(request.to_source())
+async def ingest(
+    service: RAGServiceDeps, collection: CollectionDeps, request: IngestRequest
+):
+    await service.ingest(request.to_source(), collection.id)
     return IngestResponse(message="Documento processado com sucesso.")
 
 
 @router.post("/search", status_code=status.HTTP_200_OK, response_model=SearchResponse)
-async def search(service: RAGServiceDeps, request: QueryRequest):
-    r = await service.search(request.query, request.top_k)
+async def search(
+    service: RAGServiceDeps, collection: CollectionDeps, request: QueryRequest
+):
+    r = await service.search(request.query, collection.id, request.top_k)
     return SearchResponse(
         results=[
             RetrievedChunk(
@@ -41,7 +48,9 @@ async def search(service: RAGServiceDeps, request: QueryRequest):
     )
 
 
-@router.post("/ask", status_code=status.HTTP_200_OK, response_model=AskResponse)
-async def ask(service: RAGServiceDeps, request: QueryRequest):
-    response = await service.ask(request.query, request.top_k)
-    return AskResponse(answer=response)
+@router.post("/ask", status_code=status.HTTP_200_OK)
+async def ask(
+    service: RAGServiceDeps, collection: CollectionDeps, request: QueryRequest
+):
+    chunks = service.astream_ask(request.query, collection.id, request.top_k)
+    return StreamingResponse(sse_stream(chunks), media_type="text/event-stream")

@@ -12,6 +12,8 @@ class RetrievedDocument:
 
 class BaseRetriever(ABC):
     @abstractmethod
-    async def asearch(self, query: str, top_k: int = 5) -> list[RetrievedDocument]:
-        """Recupera documentos relevantes para uma query de forma assíncrona."""
+    async def asearch(
+        self, query: str, collection_id: int, top_k: int = 5
+    ) -> list[RetrievedDocument]:
+        """Recupera documentos relevantes de uma collection para uma query."""
         ...
