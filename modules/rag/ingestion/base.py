@@ -38,6 +38,8 @@ class BaseChunker(ABC):
 
 class BaseIndexer(ABC):
     @abstractmethod
-    async def index(self, document: Document, chunks: list[Document]) -> None:
-        """Indexa e armazena um documento e seus chunks."""
+    async def index(
+        self, document: Document, chunks: list[Document], collection_id: int
+    ) -> None:
+        """Indexa um documento e seus chunks, associando-os à collection informada."""
         ...
