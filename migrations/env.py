@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from modules.rag.models import Chunk, Document  # noqa: F401
+from modules.rag.models import Chunk, Collection, Document  # noqa: F401
 from shared.config import settings
 from shared.db.base import Base
 
