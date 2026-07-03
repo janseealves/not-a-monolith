@@ -38,7 +38,3 @@ class SearchResponse(BaseModel):
     results: list[RetrievedChunk] = Field(
         ..., description="Lista de chunks relevantes encontrados"
     )
-
-
-class AskResponse(BaseModel):
-    answer: str = Field(..., description="Resposta gerada para a pergunta")
