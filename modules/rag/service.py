@@ -1,4 +1,5 @@
 import logging
+from collections.abc import AsyncIterator
 
 from langchain.chat_models import BaseChatModel, init_chat_model
 from langchain_ollama import OllamaEmbeddings
@@ -75,12 +76,15 @@ class RAGService:
     ) -> list[RetrievedDocument]:
         return await self._retriever.asearch(query, collection_id, top_k)
 
-    async def ask(self, query: str, collection_id: int, top_k: int = 5) -> str:
+    async def astream_ask(
+        self, query: str, collection_id: int, top_k: int = 5
+    ) -> AsyncIterator[str]:
         chunks = await self.search(query, collection_id, top_k)
 
         if not chunks:
             logger.warning(f"No relevant chunks found for query: {query}")
-            return "Desculpe, não encontrei informações relevantes para sua pergunta."
+            yield "Desculpe, não encontrei informações relevantes para sua pergunta."
+            return
 
         # TODO: extrair toda a lógica abaixo para um package 'generation' e usar um template engine para montar o prompt.
         context = "\n\n".join(
@@ -98,8 +102,9 @@ class RAGService:
         Resposta:
         """
         try:
-            response = await self._llm.ainvoke(prompt)
-            return response.content
+            async for chunk in self._llm.astream(prompt):
+                if chunk.content:
+                    yield chunk.content
         except Exception as e:
             logger.error(f"Error occurred while invoking LLM: {e}")
-            return "Desculpe, ocorreu um erro ao processar sua pergunta."
+            yield "Desculpe, ocorreu um erro ao processar sua pergunta."
