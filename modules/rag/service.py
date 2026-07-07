@@ -1,7 +1,7 @@
 import logging
 from collections.abc import AsyncIterator
 
-from langchain.chat_models import BaseChatModel, init_chat_model
+from langchain.chat_models import BaseChatModel
 from langchain_ollama import OllamaEmbeddings
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -14,6 +14,7 @@ from modules.rag.retrieval.retriever import SemanticRetriever
 from shared.config import Settings
 from shared.config import settings as default_settings
 from shared.db.session import SessionLocal
+from shared.llm import build_chat_model
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class RAGService:
     @classmethod
     def with_defaults(
         cls,
+        llm: BaseChatModel | None = None,
         settings: Settings | None = None,
         session_factory: async_sessionmaker | None = None,
     ) -> "RAGService":
@@ -46,24 +48,13 @@ class RAGService:
             base_url=settings.EMBEDDINGS_BASE_URL,
         )
 
-        # Implementação OLLAMA
-        key = settings.LLM_API_KEY.get_secret_value() if settings.LLM_API_KEY else None
-
-        client_kwargs = {"headers": {"Authorization": f"Bearer {key}"}} if key else {}
-        llm = init_chat_model(
-            model=settings.LLM_MODEL,
-            model_provider=settings.LLM_MODEL_PROVIDER,
-            base_url=settings.LLM_BASE_URL,
-            client_kwargs=client_kwargs,
-        )
-
         # único lugar do módulo que conhece as classes concretas
         return cls(
             parser=WebParser(),
             chunker=RecursiveChunker(),
             indexer=PostgresIndexer(session_factory, embeddings),
             retriever=SemanticRetriever(session_factory, embeddings),
-            llm=llm,
+            llm=build_chat_model(settings),
         )
 
     async def ingest(self, source: Source, collection_id: int) -> None:
