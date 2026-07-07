@@ -1,10 +1,10 @@
 from collections.abc import AsyncIterator
 
+from langchain.agents import create_agent
 from langchain.chat_models import BaseChatModel
 from langchain_core.messages import AIMessageChunk
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
-from langgraph.prebuilt import create_react_agent
 
 from modules.agents.base import BaseAgent
 
@@ -20,10 +20,10 @@ class GraphAgent(BaseAgent):
         checkpointer: BaseCheckpointSaver,
         system_prompt: str,
     ) -> None:
-        self._graph = create_react_agent(
+        self._graph = create_agent(
             llm,
             tools,
-            prompt=system_prompt,
+            system_prompt=system_prompt,
             checkpointer=checkpointer,
         )
 
