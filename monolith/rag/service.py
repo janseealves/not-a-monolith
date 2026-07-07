@@ -15,6 +15,7 @@ from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.db.session import SessionLocal
 from monolith.shared.llm import build_chat_model
+from monolith.shared.prompts import render_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -77,21 +78,14 @@ class RAGService:
             yield "Desculpe, não encontrei informações relevantes para sua pergunta."
             return
 
-        # TODO: extrair toda a lógica abaixo para um package 'generation' e usar um template engine para montar o prompt.
         context = "\n\n".join(
             f"[{idx + 1}] {chunk.document.page_content} (fonte: {chunk.document.metadata.get('source', 'desconhecida')})"
             for idx, chunk in enumerate(chunks)
         )
 
-        prompt = f"""Você é um assistente de perguntas e respostas. Use SOMENTE as informações do contexto abaixo para responder à pergunta. Cite as fontes das informações usadas, indicando o número do chunk correspondente. Se o contexto não contiver informações suficientes para responder à pergunta, diga que não sabe. Não invente respostas.
-        Contexto: {context}
-
-        ---
-
-        Pergunta: {query}
-
-        Resposta:
-        """
+        persona = render_prompt("persona", project_name=default_settings.PROJECT_NAME)
+        task = render_prompt("rag_answer", context=context, query=query)
+        prompt = f"{persona}\n\n{task}"
         try:
             async for chunk in self._llm.astream(prompt):
                 if chunk.content:

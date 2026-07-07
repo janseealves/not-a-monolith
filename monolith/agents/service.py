@@ -10,6 +10,7 @@ from monolith.rag.service import RAGService
 from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.llm import build_chat_model
+from monolith.shared.prompts import render_prompt
 
 
 class AgentService:
@@ -32,7 +33,11 @@ class AgentService:
             llm=llm,
             tools=tools,
             checkpointer=checkpointer or InMemorySaver(),
-            system_prompt=settings.AGENT_SYSTEM_PROMPT,
+            system_prompt=(
+                render_prompt("persona", project_name=settings.PROJECT_NAME)
+                + "\n\n"
+                + render_prompt("agent_tool_policy")
+            ),
         )
         return cls(agent)
 
