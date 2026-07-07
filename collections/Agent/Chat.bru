@@ -1,0 +1,23 @@
+meta {
+  name: Chat
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v1/agent/chat
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "O que é um monolito modular?",
+    "thread_id": "11111111-1111-1111-1111-111111111111",
+    "collection_id": null
+  }
+}
+
+assert {
+  res.status: eq 200
+}
