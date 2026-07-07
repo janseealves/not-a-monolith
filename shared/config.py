@@ -26,12 +26,6 @@ class Settings(BaseSettings):
     # ─── Agent ───
     # "memory": estado só em RAM (perde no restart). "postgres": persiste threads.
     AGENT_CHECKPOINTER: Literal["memory", "postgres"] = "memory"
-    AGENT_SYSTEM_PROMPT: str = (
-        "Você é um assistente autônomo. Responda sempre em português. "
-        "Quando a pergunta exigir fatos específicos de documentos, use a ferramenta "
-        "de busca na base de conhecimento antes de responder e cite as fontes. "
-        "Para conversa geral, responda direto sem usar ferramentas."
-    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

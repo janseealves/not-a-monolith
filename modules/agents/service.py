@@ -10,6 +10,7 @@ from modules.rag.service import RAGService
 from shared.config import Settings
 from shared.config import settings as default_settings
 from shared.llm import build_chat_model
+from shared.prompts import render_prompt
 
 
 class AgentService:
@@ -32,7 +33,11 @@ class AgentService:
             llm=llm,
             tools=tools,
             checkpointer=checkpointer or InMemorySaver(),
-            system_prompt=settings.AGENT_SYSTEM_PROMPT,
+            system_prompt=(
+                render_prompt("persona", project_name=settings.PROJECT_NAME)
+                + "\n\n"
+                + render_prompt("agent_tool_policy")
+            ),
         )
         return cls(agent)
 
