@@ -12,11 +12,11 @@ fazer busca por similaridade. O schema é versionado com **Alembic**.
 | Arquivo / serviço            | Papel                                                            |
 | ---------------------------- | --------------------------------------------------------------- |
 | `docker-compose.yml` (`db`)  | Sobe o Postgres com pgvector já compilado                       |
-| `shared/config.py`           | `Settings` + a property `get_database_url` (fonte única da URL)  |
-| `shared/db/base.py`          | `Base` declarativa que todos os models herdam                   |
-| `shared/db/session.py`       | Engine **async** + fábrica de sessões + `get_db()`              |
+| `monolith/shared/config.py`           | `Settings` + a property `get_database_url` (fonte única da URL)  |
+| `monolith/shared/db/base.py`          | `Base` declarativa que todos os models herdam                   |
+| `monolith/shared/db/session.py`       | Engine **async** + fábrica de sessões + `get_db()`              |
 | `migrations/`                | Ambiente do Alembic (`env.py`, `versions/`)                     |
-| `modules/<feature>/models.py`| Os models ORM de cada módulo                                     |
+| `monolith/<feature>/models.py`| Os models ORM de cada módulo                                     |
 
 ## Driver e o porquê de duas pontas (async + sync)
 
@@ -40,7 +40,7 @@ Docs: [SQLAlchemy asyncio](https://docs.sqlalchemy.org/en/20/orm/extensions/asyn
 ## Configuração
 
 A URL do banco é montada **num lugar só**, a partir das variáveis de ambiente, na
-property `get_database_url` (`shared/config.py`):
+property `get_database_url` (`monolith/shared/config.py`):
 
 ```python
 @property
@@ -64,11 +64,11 @@ Variáveis no `.env` (template em `.env.example`):
 > imagem criar o database custom no primeiro boot. Sem essa variável, só existiria o
 > `postgres` default e o `alembic upgrade` falharia.
 
-## A sessão async (`shared/db/session.py`)
+## A sessão async (`monolith/shared/db/session.py`)
 
 ```python
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from shared.config import settings
+from monolith.shared.config import settings
 
 engine = create_async_engine(settings.get_database_url, echo=True)
 SessionLocal = async_sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
@@ -129,7 +129,7 @@ alembic upgrade head
 Toda alteração de schema passa por migration — **nunca** edite tabela na mão.
 
 ```bash
-# 1. altere os models (ex.: modules/rag/models.py)
+# 1. altere os models (ex.: monolith/rag/models.py)
 
 # 2. gere a migration a partir do diff dos models
 alembic revision --autogenerate -m "descrição curta"

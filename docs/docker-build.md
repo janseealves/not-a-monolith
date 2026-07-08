@@ -23,7 +23,7 @@ A imagem da aplicação **não** carrega modelos. A inferência roda num
 aproveita a GPU da máquina sem `nvidia-container-toolkit`, e os pesos baixados
 persistem entre `docker compose down`.
 
-A app depende de dois modelos, definidos em `shared/config.py`:
+A app depende de dois modelos, definidos em `monolith/shared/config.py`:
 
 | Variável           | Default               | Uso                     |
 | ------------------ | --------------------- | ----------------------- |
