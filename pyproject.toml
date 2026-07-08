@@ -30,7 +30,7 @@ dev = [
 ]
 
 [tool.fastapi]
-entrypoint = 'interfaces.api.main:app'
+entrypoint = 'monolith.interfaces.api.main:app'
 
 [tool.ruff]
 line-length = 88

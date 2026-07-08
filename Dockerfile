@@ -27,7 +27,7 @@ RUN uv sync --frozen
 RUN uv run playwright install --with-deps chromium
 EXPOSE 8000
 # CMD padrão da imagem dev — o docker-compose.override.yml sobrescreve com --reload.
-CMD ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
+CMD ["uv", "run", "uvicorn", "monolith.interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
 
 # == Production ==
 # Imagem de produção: SEM o grupo `dev`, código imutável dentro da imagem,
@@ -46,4 +46,4 @@ RUN useradd --create-home appuser \
 USER appuser
 EXPOSE 8000
 # CMD padrão — o docker-compose.prod.yml sobrescreve com o número de workers.
-CMD ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]
+CMD ["uv", "run", "uvicorn", "monolith.interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]

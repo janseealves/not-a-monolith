@@ -10,7 +10,7 @@ services:
     # `ports`/`extra_hosts` passam a ser ignorados; Postgres vai por localhost:5432.
     network_mode: host
     # Sobrescreve o command de prod: 1 worker + --reload (reinicia ao salvar arquivo).
-    command: ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
+    command: ["uv", "run", "uvicorn", "monolith.interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
     depends_on:
       ollama-pull: !reset null   # dev usa o Ollama do host; sem pull em container
     volumes:
