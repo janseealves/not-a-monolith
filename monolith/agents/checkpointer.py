@@ -6,8 +6,8 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-from shared.config import Settings
-from shared.config import settings as default_settings
+from monolith.shared.config import Settings
+from monolith.shared.config import settings as default_settings
 
 logger = logging.getLogger(__name__)
 

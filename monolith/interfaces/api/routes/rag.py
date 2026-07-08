@@ -3,17 +3,17 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import StreamingResponse
 
-from interfaces.api.dependencies import get_collection, get_rag_service
-from interfaces.api.schemas.rag import (
+from monolith.interfaces.api.dependencies import get_collection, get_rag_service
+from monolith.interfaces.api.schemas.rag import (
     IngestRequest,
     IngestResponse,
     QueryRequest,
     RetrievedChunk,
     SearchResponse,
 )
-from modules.rag.models import Collection
-from modules.rag.service import RAGService
-from shared.streaming import sse_stream
+from monolith.rag.models import Collection
+from monolith.rag.service import RAGService
+from monolith.shared.streaming import sse_stream
 
 router = APIRouter(prefix="/rag/collections/{collection_id}", tags=["RAG"])
 

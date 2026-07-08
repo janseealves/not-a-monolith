@@ -4,7 +4,7 @@ from re import search
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from modules.rag.ingestion.base import BaseChunker
+from monolith.rag.ingestion.base import BaseChunker
 
 logger = logging.getLogger(__name__)
 

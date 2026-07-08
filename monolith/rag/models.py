@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from shared.db.base import Base
+from monolith.shared.db.base import Base
 
 # Tabela pura de associação N:N — sem colunas próprias, não precisa de classe mapeada.
 collection_documents = Table(

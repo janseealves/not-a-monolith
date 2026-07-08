@@ -3,11 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
-from interfaces.api.dependencies import get_agent_service
-from interfaces.api.schemas.agent import ChatRequest
-from modules.agents.service import AgentService
-from modules.rag import crud as rag_crud
-from shared.streaming import sse_stream
+from monolith.agents.service import AgentService
+from monolith.interfaces.api.dependencies import get_agent_service
+from monolith.interfaces.api.schemas.agent import ChatRequest
+from monolith.rag import crud as rag_crud
+from monolith.shared.streaming import sse_stream
 
 router = APIRouter(prefix="/agent", tags=["Agent"])
 

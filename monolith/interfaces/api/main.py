@@ -1,18 +1,18 @@
-# interfaces/api/main.py
+# monolith/interfaces/api/main.py
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from interfaces.api.routes.agent import router as agent_router
-from interfaces.api.routes.collections import router as collections_router
-from interfaces.api.routes.meta import router as meta_router
-from interfaces.api.routes.rag import router as rag_router
-from modules.agents.checkpointer import build_agent_checkpointer
-from modules.agents.service import AgentService
-from modules.rag.service import RAGService
-from shared.config import settings, setup_logger
+from monolith.agents.checkpointer import build_agent_checkpointer
+from monolith.agents.service import AgentService
+from monolith.interfaces.api.routes.agent import router as agent_router
+from monolith.interfaces.api.routes.collections import router as collections_router
+from monolith.interfaces.api.routes.meta import router as meta_router
+from monolith.interfaces.api.routes.rag import router as rag_router
+from monolith.rag.service import RAGService
+from monolith.shared.config import settings, setup_logger
 
 setup_logger(level=settings.LOGGING_LEVEL)
 

@@ -4,8 +4,8 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from modules.rag.models import Collection
-from shared.db.session import SessionLocal
+from monolith.rag.models import Collection
+from monolith.shared.db.session import SessionLocal
 
 
 async def create_collection(

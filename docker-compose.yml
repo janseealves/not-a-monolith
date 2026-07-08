@@ -23,7 +23,7 @@ services:
       - "8000:8000"
     # Múltiplos workers para aproveitar os núcleos da máquina. SEM --reload.
     # Regra de bolso: ~2 x núcleos do host.
-    command: ["uv", "run", "uvicorn", "interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]
+    command: ["uv", "run", "uvicorn", "monolith.interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--workers=4"]
     extra_hosts:
       # Permite acessar serviços do host (ex: Ollama) via "host.docker.internal".
       - "host.docker.internal:host-gateway"

@@ -1,6 +1,6 @@
 from langchain.chat_models import BaseChatModel, init_chat_model
 
-from shared.config import Settings
+from monolith.shared.config import Settings
 
 
 def build_chat_model(settings: Settings) -> BaseChatModel:
