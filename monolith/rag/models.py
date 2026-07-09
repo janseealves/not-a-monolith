@@ -5,34 +5,25 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     UUID,
     BigInteger,
-    Column,
     DateTime,
     ForeignKey,
     String,
-    Table,
     Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from monolith.shared.db.base import Base
 
-# Tabela pura de associação N:N — sem colunas próprias, não precisa de classe mapeada.
-collection_documents = Table(
-    "collection_documents",
-    Base.metadata,
-    Column(
-        "collection_id",
-        BigInteger,
-        ForeignKey("collections.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "document_id",
-        BigInteger,
-        ForeignKey("documents.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
+
+class CollectionDocument(Base):
+    __tablename__ = "collection_documents"
+
+    collection_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("collections.id", ondelete="CASCADE"), primary_key=True
+    )
+    document_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 class Collection(Base):
@@ -49,7 +40,7 @@ class Collection(Base):
     )
 
     documents: Mapped[list["Document"]] = relationship(
-        "Document", secondary=collection_documents, back_populates="collections"
+        "Document", secondary=CollectionDocument.__table__, back_populates="collections"
     )
 
 
@@ -73,7 +64,7 @@ class Document(Base):
         "Chunk", back_populates="document", cascade="all, delete-orphan"
     )
     collections: Mapped[list["Collection"]] = relationship(
-        "Collection", secondary=collection_documents, back_populates="documents"
+        "Collection", secondary=CollectionDocument.__table__, back_populates="documents"
     )
 
 
