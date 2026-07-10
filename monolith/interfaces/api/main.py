@@ -3,7 +3,6 @@ import logging
 from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from monolith.agents.checkpointer import build_agent_checkpointer
 from monolith.agents.service import AgentService
@@ -44,14 +43,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="not-a-monolith", lifespan=lifespan)
-
-# CORS: libera o frontend local (mono-ui) a consumir a API de outra origem
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
 
 
 app.include_router(meta_router)
