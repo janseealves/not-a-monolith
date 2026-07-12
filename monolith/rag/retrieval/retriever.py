@@ -41,6 +41,7 @@ class SemanticRetriever(BaseRetriever):
         distance = Chunk.embedding.cosine_distance(query_vector).label("distance")
         stmt = (
             select(
+                Chunk.external_id,
                 Chunk.content,
                 Chunk.chunk_index,
                 DocumentModel.source,
@@ -72,6 +73,7 @@ class SemanticRetriever(BaseRetriever):
                 document=Document(
                     page_content=row.content,
                     metadata={
+                        "chunk_id": str(row.external_id),
                         "source": row.source,
                         "title": row.title,
                         "chunk_index": row.chunk_index,

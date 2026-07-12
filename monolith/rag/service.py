@@ -1,5 +1,6 @@
 import logging
 from collections.abc import AsyncIterator
+from dataclasses import dataclass
 
 from langchain.chat_models import BaseChatModel
 from langchain_ollama import OllamaEmbeddings
@@ -18,6 +19,32 @@ from monolith.shared.llm import build_chat_model
 from monolith.shared.prompts import render_prompt
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SourceInfo:
+    source: str
+    chunk_ids: list[str]
+
+
+@dataclass
+class AskResult:
+    sources: list[SourceInfo]
+    stream: AsyncIterator[str]
+
+
+def build_sources(chunks: list[RetrievedDocument]) -> list[SourceInfo]:
+    # agrupa por source: vários chunks costumam vir do mesmo documento.
+    chunk_ids_by_source: dict[str, list[str]] = {}
+    for chunk in chunks:
+        source = chunk.document.metadata.get("source", "desconhecida")
+        chunk_ids_by_source.setdefault(source, []).append(
+            chunk.document.metadata["chunk_id"]
+        )
+    return [
+        SourceInfo(source=source, chunk_ids=chunk_ids)
+        for source, chunk_ids in chunk_ids_by_source.items()
+    ]
 
 
 class RAGService:
@@ -70,9 +97,16 @@ class RAGService:
 
     async def astream_ask(
         self, query: str, collection_id: int, top_k: int = 5
-    ) -> AsyncIterator[str]:
+    ) -> AskResult:
         chunks = await self.search(query, collection_id, top_k)
+        return AskResult(
+            sources=build_sources(chunks),
+            stream=self._stream_answer(query, chunks),
+        )
 
+    async def _stream_answer(
+        self, query: str, chunks: list[RetrievedDocument]
+    ) -> AsyncIterator[str]:
         if not chunks:
             logger.warning(f"No relevant chunks found for query: {query}")
             yield "Desculpe, não encontrei informações relevantes para sua pergunta."

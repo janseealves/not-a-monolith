@@ -11,6 +11,7 @@ from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.llm import build_chat_model
 from monolith.shared.prompts import render_prompt
+from monolith.shared.streaming import SourcesChunk
 
 
 class AgentService:
@@ -46,5 +47,5 @@ class AgentService:
         message: str,
         thread_id: str,
         collection_id: int | None = None,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[str | SourcesChunk]:
         return self._agent.astream(message, thread_id, collection_id)
