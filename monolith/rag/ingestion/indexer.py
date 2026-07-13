@@ -8,7 +8,7 @@ from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from monolith.rag.ingestion.base import BaseIndexer
-from monolith.rag.models import Chunk, collection_documents
+from monolith.rag.models import Chunk, CollectionDocument
 from monolith.rag.models import Document as DocumentModel
 
 logger = logging.getLogger(__name__)
@@ -49,9 +49,9 @@ class PostgresIndexer(BaseIndexer):
             )
             already_linked = (
                 await session.scalar(
-                    select(collection_documents.c.document_id).where(
-                        collection_documents.c.document_id == existing_id,
-                        collection_documents.c.collection_id == collection_id,
+                    select(CollectionDocument.document_id).where(
+                        CollectionDocument.document_id == existing_id,
+                        CollectionDocument.collection_id == collection_id,
                     )
                 )
                 if existing_id is not None
@@ -62,7 +62,7 @@ class PostgresIndexer(BaseIndexer):
             if already_linked is None:
                 async with self._session_factory() as session, session.begin():
                     await session.execute(
-                        insert(collection_documents).values(
+                        insert(CollectionDocument).values(
                             document_id=existing_id, collection_id=collection_id
                         )
                     )
@@ -109,7 +109,7 @@ class PostgresIndexer(BaseIndexer):
                 ]
             )
             await session.execute(
-                insert(collection_documents).values(
+                insert(CollectionDocument).values(
                     document_id=doc_model.id, collection_id=collection_id
                 )
             )

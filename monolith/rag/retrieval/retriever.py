@@ -5,7 +5,7 @@ from langchain_core.embeddings import Embeddings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.models import Chunk, collection_documents
+from monolith.rag.models import Chunk, CollectionDocument
 from monolith.rag.models import Document as DocumentModel
 from monolith.rag.retrieval.base import BaseRetriever, RetrievedDocument
 
@@ -49,10 +49,10 @@ class SemanticRetriever(BaseRetriever):
             )
             .join(DocumentModel, Chunk.document_id == DocumentModel.id)
             .join(
-                collection_documents,
-                collection_documents.c.document_id == DocumentModel.id,
+                CollectionDocument,
+                CollectionDocument.document_id == DocumentModel.id,
             )
-            .where(collection_documents.c.collection_id == collection_id)
+            .where(CollectionDocument.collection_id == collection_id)
             .order_by(distance)
             .limit(top_k)
         )
