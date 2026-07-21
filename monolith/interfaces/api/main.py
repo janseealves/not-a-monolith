@@ -4,13 +4,13 @@ from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
 
-from monolith.agents.checkpointer import build_agent_checkpointer
-from monolith.agents.service import AgentService
 from monolith.interfaces.api.routes.agent import router as agent_router
 from monolith.interfaces.api.routes.collections import router as collections_router
 from monolith.interfaces.api.routes.meta import router as meta_router
 from monolith.interfaces.api.routes.rag import router as rag_router
-from monolith.rag.service import RAGService
+from monolith.modules.agents.checkpointer import build_agent_checkpointer
+from monolith.modules.agents.service import AgentService
+from monolith.modules.rag.service import RAGService
 from monolith.shared.config import settings, setup_logger
 
 setup_logger(level=settings.LOGGING_LEVEL)

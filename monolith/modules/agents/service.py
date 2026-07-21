@@ -3,10 +3,10 @@ from collections.abc import AsyncIterator
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 
-from monolith.agents.base import BaseAgent
-from monolith.agents.graph.agent import GraphAgent
-from monolith.agents.graph.tools import make_rag_tool
-from monolith.rag.service import RAGService
+from monolith.modules.agents.base import BaseAgent
+from monolith.modules.agents.graph.agent import GraphAgent
+from monolith.modules.agents.graph.tools import make_rag_tool
+from monolith.modules.rag.service import RAGService
 from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.llm import build_chat_model

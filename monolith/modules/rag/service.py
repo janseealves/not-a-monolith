@@ -5,12 +5,17 @@ from langchain.chat_models import BaseChatModel
 from langchain_ollama import OllamaEmbeddings
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.ingestion.base import BaseChunker, BaseIndexer, BaseParser, Source
-from monolith.rag.ingestion.chunker import RecursiveChunker
-from monolith.rag.ingestion.indexer import PostgresIndexer
-from monolith.rag.ingestion.parser import WebParser
-from monolith.rag.retrieval.base import BaseRetriever, RetrievedDocument
-from monolith.rag.retrieval.retriever import SemanticRetriever
+from monolith.modules.rag.ingestion.base import (
+    BaseChunker,
+    BaseIndexer,
+    BaseParser,
+    Source,
+)
+from monolith.modules.rag.ingestion.chunker import RecursiveChunker
+from monolith.modules.rag.ingestion.indexer import PostgresIndexer
+from monolith.modules.rag.ingestion.parser import WebParser
+from monolith.modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
+from monolith.modules.rag.retrieval.retriever import SemanticRetriever
 from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.db.session import SessionLocal

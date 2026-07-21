@@ -2,10 +2,10 @@ import uuid
 
 from fastapi import HTTPException, Request, status
 
-from monolith.agents.service import AgentService
-from monolith.rag import crud
-from monolith.rag.models import Collection
-from monolith.rag.service import RAGService
+from monolith.modules.agents.service import AgentService
+from monolith.modules.rag import crud
+from monolith.modules.rag.models import Collection
+from monolith.modules.rag.service import RAGService
 
 
 def get_rag_service(request: Request) -> RAGService:

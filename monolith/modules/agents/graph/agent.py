@@ -6,7 +6,7 @@ from langchain_core.messages import AIMessageChunk
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
-from monolith.agents.base import BaseAgent
+from monolith.modules.agents.base import BaseAgent
 
 
 class GraphAgent(BaseAgent):

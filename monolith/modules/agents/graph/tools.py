@@ -1,7 +1,7 @@
 from langchain_core.tools import BaseTool, tool
 from langgraph.config import get_config
 
-from monolith.rag.service import RAGService
+from monolith.modules.rag.service import RAGService
 
 
 def make_rag_tool(rag: RAGService) -> BaseTool:
