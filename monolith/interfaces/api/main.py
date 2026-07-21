@@ -8,8 +8,8 @@ from monolith.interfaces.api.routes.agent import router as agent_router
 from monolith.interfaces.api.routes.collections import router as collections_router
 from monolith.interfaces.api.routes.meta import router as meta_router
 from monolith.interfaces.api.routes.rag import router as rag_router
+from monolith.modules.agents.chat.service import ChatService
 from monolith.modules.agents.checkpointer import build_agent_checkpointer
-from monolith.modules.agents.service import AgentService
 from monolith.modules.rag.service import RAGService
 from monolith.shared.config import settings, setup_logger
 
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as stack:
         logger.info("Initializing Agent service...")
         checkpointer = await stack.enter_async_context(build_agent_checkpointer())
-        app.state.agent_service = AgentService.with_defaults(
+        app.state.chat_service = ChatService.with_defaults(
             rag=app.state.rag_service, checkpointer=checkpointer
         )
         logger.info("Agent service ready.")
