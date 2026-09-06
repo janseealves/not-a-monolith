@@ -3,9 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from modules.rag.models import Chunk, Collection, Document  # noqa: F401
-from shared.config import settings
-from shared.db.base import Base
+from monolith.modules.rag.models import Chunk, Collection, Document  # noqa: F401
+from monolith.shared.config import settings
+from monolith.shared.db.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
