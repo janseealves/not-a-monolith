@@ -5,9 +5,9 @@ from langchain_core.embeddings import Embeddings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.models import Chunk, CollectionDocument
-from monolith.rag.models import Document as DocumentModel
-from monolith.rag.retrieval.base import BaseRetriever, RetrievedDocument
+from monolith.modules.rag.models import Chunk, CollectionDocument
+from monolith.modules.rag.models import Document as DocumentModel
+from monolith.modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
 
 logger = logging.getLogger(__name__)
 

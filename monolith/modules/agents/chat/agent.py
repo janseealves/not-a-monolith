@@ -6,13 +6,13 @@ from langchain_core.messages import AIMessageChunk, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
-from monolith.agents.base import BaseAgent
+from monolith.modules.agents.base import BaseAgent
 from monolith.shared.streaming import SourcesChunk
 
 
-class GraphAgent(BaseAgent):
-    """Agente ReAct sobre LangGraph. Compila o grafo uma vez; cada conversa é
-    isolada pelo thread_id no checkpointer."""
+class ChatAgent(BaseAgent):
+    """Agente de conversa: loop ReAct sobre LangGraph, com a tool de busca do RAG.
+    Compila o grafo uma vez; cada conversa é isolada pelo thread_id no checkpointer."""
 
     def __init__(
         self,

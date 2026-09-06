@@ -3,7 +3,7 @@ from dataclasses import asdict
 from langchain_core.tools import BaseTool, tool
 from langgraph.config import get_config
 
-from monolith.rag.service import RAGService, build_sources
+from monolith.modules.rag.service import RAGService, build_sources
 
 
 def make_rag_tool(rag: RAGService) -> BaseTool:
