@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
@@ -13,7 +14,7 @@ from monolith.interfaces.api.schemas.rag import (
 )
 from monolith.modules.rag.models import Collection
 from monolith.modules.rag.service import RAGService
-from monolith.shared.streaming import sse_stream
+from monolith.shared.streaming import sse_stream_with_sources
 
 router = APIRouter(prefix="/rag/collections/{collection_id}", tags=["RAG"])
 
@@ -52,5 +53,6 @@ async def search(
 async def ask(
     service: RAGServiceDeps, collection: CollectionDeps, request: QueryRequest
 ):
-    chunks = service.astream_ask(request.query, collection.id, request.top_k)
-    return StreamingResponse(sse_stream(chunks), media_type="text/event-stream")
+    result = await service.astream_ask(request.query, collection.id, request.top_k)
+    stream = sse_stream_with_sources([asdict(s) for s in result.sources], result.stream)
+    return StreamingResponse(stream, media_type="text/event-stream")
