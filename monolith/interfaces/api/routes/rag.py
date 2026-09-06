@@ -11,8 +11,8 @@ from monolith.interfaces.api.schemas.rag import (
     RetrievedChunk,
     SearchResponse,
 )
-from monolith.rag.models import Collection
-from monolith.rag.service import RAGService
+from monolith.modules.rag.models import Collection
+from monolith.modules.rag.service import RAGService
 from monolith.shared.streaming import sse_stream
 
 router = APIRouter(prefix="/rag/collections/{collection_id}", tags=["RAG"])

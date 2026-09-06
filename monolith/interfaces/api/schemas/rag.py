@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from monolith.rag.ingestion.base import LocalSource, Source, WebSource
+from monolith.modules.rag.ingestion.base import LocalSource, Source, WebSource
 
 
 class IngestRequest(BaseModel):

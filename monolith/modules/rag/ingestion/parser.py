@@ -6,7 +6,12 @@ import pymupdf4llm
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
 from langchain_core.documents import Document
 
-from monolith.rag.ingestion.base import BaseParser, LocalSource, Source, WebSource
+from monolith.modules.rag.ingestion.base import (
+    BaseParser,
+    LocalSource,
+    Source,
+    WebSource,
+)
 
 logger = logging.getLogger(__name__)
 
