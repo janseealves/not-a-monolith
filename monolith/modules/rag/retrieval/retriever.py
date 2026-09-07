@@ -5,9 +5,9 @@ from langchain_core.embeddings import Embeddings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.models import Chunk, CollectionDocument
-from monolith.rag.models import Document as DocumentModel
-from monolith.rag.retrieval.base import BaseRetriever, RetrievedDocument
+from monolith.modules.rag.models import Chunk, CollectionDocument
+from monolith.modules.rag.models import Document as DocumentModel
+from monolith.modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ class SemanticRetriever(BaseRetriever):
         distance = Chunk.embedding.cosine_distance(query_vector).label("distance")
         stmt = (
             select(
+                Chunk.external_id,
                 Chunk.content,
                 Chunk.chunk_index,
                 DocumentModel.source,
@@ -72,6 +73,7 @@ class SemanticRetriever(BaseRetriever):
                 document=Document(
                     page_content=row.content,
                     metadata={
+                        "chunk_id": str(row.external_id),
                         "source": row.source,
                         "title": row.title,
                         "chunk_index": row.chunk_index,

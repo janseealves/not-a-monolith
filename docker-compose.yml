@@ -34,6 +34,8 @@ services:
         condition: service_completed_successfully  # app só sobe com o schema migrado
       ollama-pull:
         condition: service_completed_successfully  # ...e com o modelo de embeddings baixado
+      minio-init:
+        condition: service_completed_successfully  # ...e com o bucket criado
 
   # Roda `alembic upgrade head` uma vez e termina. Reusa a imagem de produção.
   migrate:
@@ -89,6 +91,43 @@ services:
       retries: 5
       start_period: 30s
 
+  # Object store S3-compatible. Guarda os PDFs e serve direto ao browser via
+  # presigned URL, para os bytes não passarem pelos workers do app.
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    env_file: .env              # MINIO_ROOT_USER / MINIO_ROOT_PASSWORD
+    command: ["server", "/data", "--console-address", ":9001"]
+    volumes:
+      - minio_data:/data
+    ports:
+      # A 9000 precisa ser alcançável pelo BROWSER: é o host que entra na
+      # assinatura da presigned URL. Em prd, ponha atrás de TLS.
+      # A 9001 (console web) fica só no override de dev.
+      - "9000:9000"
+    restart: unless-stopped
+    healthcheck:
+      # curl já vem na imagem; /minio/health/live é o endpoint de liveness.
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      # Intervalo curto de propósito: o minio-init espera este healthcheck e
+      # ele, por sua vez, segura a subida do app.
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Cria o bucket uma vez e termina — MinIO não cria bucket sozinho. Mesmo
+  # padrão do ollama-pull: idempotente, no-op se o bucket já existe.
+  # O bucket nasce PRIVADO e continua assim: o acesso é sempre por presigned URL.
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    env_file: .env
+    entrypoint: ["sh", "-c", "mc alias set store $$MINIO_ENDPOINT $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD && mc mb --ignore-existing store/$$MINIO_BUCKET"]
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
 volumes:
   db_data:
   ollama_data:
+  minio_data:

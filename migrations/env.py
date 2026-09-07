@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from monolith.rag.models import Chunk, Collection, Document  # noqa: F401
+from monolith.modules.rag.models import Chunk, Collection, Document  # noqa: F401
 from monolith.shared.config import settings
 from monolith.shared.db.base import Base
 

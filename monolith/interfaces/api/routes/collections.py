@@ -4,8 +4,8 @@ from monolith.interfaces.api.schemas.collection import (
     CollectionResponse,
     CreateCollectionRequest,
 )
-from monolith.rag import crud
-from monolith.rag.models import Collection
+from monolith.modules.rag import crud
+from monolith.modules.rag.models import Collection
 
 router = APIRouter(prefix="/rag/collections", tags=["Collections"])
 

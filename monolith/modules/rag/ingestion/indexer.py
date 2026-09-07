@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import uuid
 from datetime import UTC, datetime
 
 from langchain_core.documents import Document
@@ -7,9 +8,9 @@ from langchain_core.embeddings import Embeddings
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.ingestion.base import BaseIndexer
-from monolith.rag.models import Chunk, CollectionDocument
-from monolith.rag.models import Document as DocumentModel
+from monolith.modules.rag.ingestion.base import BaseIndexer
+from monolith.modules.rag.models import Chunk, CollectionDocument
+from monolith.modules.rag.models import Document as DocumentModel
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +27,11 @@ class PostgresIndexer(BaseIndexer):
 
     async def index(
         self, document: Document, chunks: list[Document], collection_id: int
-    ) -> None:
+    ) -> uuid.UUID:
         if not chunks:
-            logger.warning(
-                "No chunks to index for source %s", document.metadata.get("source")
+            raise ValueError(
+                f"Nenhum chunk para indexar: {document.metadata.get('source')}"
             )
-            return
 
         title = document.metadata.get("title") or "none"
         source = document.metadata.get("source", "")
@@ -42,11 +42,14 @@ class PostgresIndexer(BaseIndexer):
         # Leitura numa sessão à parte: a sessão de escrita abaixo precisa começar
         # "limpa" pra poder abrir sua própria transação com session.begin().
         async with self._session_factory() as session:
-            existing_id = await session.scalar(
-                select(DocumentModel.id).where(
-                    DocumentModel.content_hash == content_hash
+            existing = (
+                await session.execute(
+                    select(DocumentModel.id, DocumentModel.external_id).where(
+                        DocumentModel.content_hash == content_hash
+                    )
                 )
-            )
+            ).first()
+            existing_id = existing.id if existing is not None else None
             already_linked = (
                 await session.scalar(
                     select(CollectionDocument.document_id).where(
@@ -58,7 +61,7 @@ class PostgresIndexer(BaseIndexer):
                 else None
             )
 
-        if existing_id is not None:
+        if existing is not None:
             if already_linked is None:
                 async with self._session_factory() as session, session.begin():
                     await session.execute(
@@ -73,7 +76,7 @@ class PostgresIndexer(BaseIndexer):
                 )
             else:
                 logger.info("Document already indexed and linked, skipping: %s", source)
-            return
+            return existing.external_id
 
         # 1. Embeddings PRIMEIRO, fora da transação — é uma chamada de rede ao Ollama.
         prompts = [
@@ -93,6 +96,9 @@ class PostgresIndexer(BaseIndexer):
             )
             session.add(doc_model)
             await session.flush()  # garante doc_model.id antes dos chunks
+            # Lido aqui dentro: o commit expira a instância e a sessão fecha
+            # logo depois, então o acesso lá fora dispararia um refresh.
+            external_id = doc_model.external_id
 
             session.add_all(
                 [
@@ -115,3 +121,4 @@ class PostgresIndexer(BaseIndexer):
             )
 
         logger.info("Indexed %d chunks for document %s", len(chunks), source)
+        return external_id

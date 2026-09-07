@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -40,6 +41,10 @@ class BaseIndexer(ABC):
     @abstractmethod
     async def index(
         self, document: Document, chunks: list[Document], collection_id: int
-    ) -> None:
-        """Indexa um documento e seus chunks, associando-os à collection informada."""
+    ) -> uuid.UUID:
+        """Indexa um documento e seus chunks, associando-os à collection informada.
+
+        Devolve o external_id do documento — é por ele que o cliente pede a
+        referência depois, e ele pode ser de um documento que já existia.
+        """
         ...

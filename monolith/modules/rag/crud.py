@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from monolith.rag.models import Collection
+from monolith.modules.rag.models import Collection, Document
 from monolith.shared.db.session import SessionLocal
 
 
@@ -37,6 +37,16 @@ async def get_collection_by_external_id(
     async with session_factory() as session:
         return await session.scalar(
             select(Collection).where(Collection.external_id == external_id)
+        )
+
+
+async def get_document_by_external_id(
+    external_id: uuid.UUID,
+    session_factory: async_sessionmaker = SessionLocal,
+) -> Document | None:
+    async with session_factory() as session:
+        return await session.scalar(
+            select(Document).where(Document.external_id == external_id)
         )
 
 

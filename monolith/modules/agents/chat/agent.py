@@ -2,16 +2,17 @@ from collections.abc import AsyncIterator
 
 from langchain.agents import create_agent
 from langchain.chat_models import BaseChatModel
-from langchain_core.messages import AIMessageChunk
+from langchain_core.messages import AIMessageChunk, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
-from monolith.agents.base import BaseAgent
+from monolith.modules.agents.base import BaseAgent
+from monolith.shared.streaming import SourcesChunk
 
 
-class GraphAgent(BaseAgent):
-    """Agente ReAct sobre LangGraph. Compila o grafo uma vez; cada conversa é
-    isolada pelo thread_id no checkpointer."""
+class ChatAgent(BaseAgent):
+    """Agente de conversa: loop ReAct sobre LangGraph, com a tool de busca do RAG.
+    Compila o grafo uma vez; cada conversa é isolada pelo thread_id no checkpointer."""
 
     def __init__(
         self,
@@ -32,13 +33,15 @@ class GraphAgent(BaseAgent):
         message: str,
         thread_id: str,
         collection_id: int | None = None,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[str | SourcesChunk]:
         config = {"configurable": {"thread_id": thread_id}}
         if collection_id is not None:
             config["configurable"]["collection_id"] = collection_id
 
-        # stream_mode="messages" emite (chunk, metadata) por token; filtramos só
-        # os tokens de texto do LLM (ToolMessages e tool_calls vazios ficam de fora).
+        # stream_mode="messages" emite (chunk, metadata) por token/mensagem. Tokens
+        # de texto do LLM viram str; resultado de tool com artifact (ex: a tool de
+        # busca) vira um SourcesChunk. O momento de cada um depende de quando o
+        # próprio agente decide chamar a tool durante o loop ReAct.
         async for chunk, _ in self._graph.astream(
             {"messages": [{"role": "user", "content": message}]},
             config,
@@ -46,3 +49,5 @@ class GraphAgent(BaseAgent):
         ):
             if isinstance(chunk, AIMessageChunk) and chunk.content:
                 yield chunk.content
+            elif isinstance(chunk, ToolMessage) and chunk.artifact:
+                yield SourcesChunk(sources=chunk.artifact)
