@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 from typing import Literal
 
@@ -20,6 +21,21 @@ class IngestRequest(BaseModel):
 
 class IngestResponse(BaseModel):
     message: str = Field(..., description="Mensagem de confirmação da ingestão")
+
+
+class UploadResponse(BaseModel):
+    document_id: uuid.UUID = Field(
+        ...,
+        description="Identificador público do documento; use-o para pedir a referência",
+    )
+    message: str = Field(..., description="Mensagem de confirmação da ingestão")
+
+
+class DocumentReference(BaseModel):
+    url: str = Field(
+        ..., description="URL temporária e assinada para ler o documento original"
+    )
+    expires_in: int = Field(..., description="Validade da URL, em segundos")
 
 
 class QueryRequest(BaseModel):

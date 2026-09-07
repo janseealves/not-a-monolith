@@ -106,3 +106,20 @@ class PDFParser(BaseParser):
                 "file_size": path.stat().st_size,
             },
         )
+
+
+class ParserRouter(BaseParser):
+    """Escolhe o parser pelo tipo do Source.
+
+    Existe porque o RAGService recebe um único BaseParser: sem o dispatch, o
+    serviço ficaria preso ao parser web e o PDFParser seria inalcançável.
+    """
+
+    def __init__(self, parsers: dict[type, BaseParser]) -> None:
+        self._parsers = parsers
+
+    async def load(self, source: Source) -> Document:
+        parser = self._parsers.get(type(source))
+        if parser is None:
+            raise TypeError(f"Nenhum parser registrado para {type(source).__name__}")
+        return await parser.load(source)

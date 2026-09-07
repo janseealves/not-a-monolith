@@ -1,6 +1,9 @@
 import logging
+import tempfile
+import uuid
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from pathlib import Path
 
 from langchain.chat_models import BaseChatModel
 from langchain_ollama import OllamaEmbeddings
@@ -10,11 +13,13 @@ from monolith.modules.rag.ingestion.base import (
     BaseChunker,
     BaseIndexer,
     BaseParser,
+    LocalSource,
     Source,
+    WebSource,
 )
 from monolith.modules.rag.ingestion.chunker import RecursiveChunker
 from monolith.modules.rag.ingestion.indexer import PostgresIndexer
-from monolith.modules.rag.ingestion.parser import WebParser
+from monolith.modules.rag.ingestion.parser import ParserRouter, PDFParser, WebParser
 from monolith.modules.rag.retrieval.base import BaseRetriever, RetrievedDocument
 from monolith.modules.rag.retrieval.retriever import SemanticRetriever
 from monolith.shared.config import Settings
@@ -22,6 +27,7 @@ from monolith.shared.config import settings as default_settings
 from monolith.shared.db.session import SessionLocal
 from monolith.shared.llm import build_chat_model
 from monolith.shared.prompts import render_prompt
+from monolith.shared.storage import ObjectStore
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +66,14 @@ class RAGService:
         indexer: BaseIndexer,
         retriever: BaseRetriever,
         llm: BaseChatModel,
+        store: ObjectStore,
     ) -> None:
         self._parser = parser
         self._chunker = chunker
         self._indexer = indexer
         self._retriever = retriever
         self._llm = llm
+        self._store = store
 
     @classmethod
     def with_defaults(
@@ -73,6 +81,7 @@ class RAGService:
         llm: BaseChatModel | None = None,
         settings: Settings | None = None,
         session_factory: async_sessionmaker | None = None,
+        store: ObjectStore | None = None,
     ) -> "RAGService":
         settings = settings or default_settings
         session_factory = session_factory or SessionLocal
@@ -83,17 +92,47 @@ class RAGService:
 
         # único lugar do módulo que conhece as classes concretas
         return cls(
-            parser=WebParser(),
+            # Um parser por tipo de fonte: URL vai pro crawler, arquivo vai pro PDF.
+            parser=ParserRouter({WebSource: WebParser(), LocalSource: PDFParser()}),
             chunker=RecursiveChunker(),
             indexer=PostgresIndexer(session_factory, embeddings),
             retriever=SemanticRetriever(session_factory, embeddings),
             llm=build_chat_model(settings),
+            store=store or ObjectStore(settings),
         )
 
-    async def ingest(self, source: Source, collection_id: int) -> None:
+    async def ingest(
+        self, source: Source, collection_id: int, source_uri: str | None = None
+    ) -> uuid.UUID:
         document = await self._parser.load(source)
+        if source_uri is not None:
+            # O parser carimba de onde leu — num upload, isso é o arquivo
+            # temporário. Quem vai na citação é a fonte durável.
+            document.metadata["source"] = source_uri
         chunks = self._chunker.split(document)
-        await self._indexer.index(document, chunks, collection_id)
+        return await self._indexer.index(document, chunks, collection_id)
+
+    async def ingest_upload(
+        self, filename: str, data: bytes, content_type: str, collection_id: int
+    ) -> uuid.UUID:
+        """Guarda o binário no object store e indexa o conteúdo dele."""
+        suffix = Path(filename).suffix.lower()
+        # O nome vem do cliente: só o sufixo é aproveitado, o resto é um uuid.
+        key = f"{uuid.uuid4()}{suffix}"
+
+        # Grava ANTES de indexar. Falhando aqui, nada foi para o banco; na ordem
+        # inversa sobraria um documento indexado apontando para um objeto que
+        # não existe, e a rota de referência devolveria 404 para sempre.
+        uri = await self._store.put(key, data, content_type)
+
+        # O PDFParser lê de um path em disco; o temporário só precisa durar a
+        # ingestão, já que a cópia durável é a do object store.
+        with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
+            tmp.write(data)
+            tmp.flush()
+            return await self.ingest(
+                LocalSource(path=Path(tmp.name)), collection_id, source_uri=uri
+            )
 
     async def search(
         self, query: str, collection_id: int, top_k: int = 5
