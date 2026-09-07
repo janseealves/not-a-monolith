@@ -74,14 +74,9 @@ class PDFParser(BaseParser):
         if not path.exists():
             raise FileNotFoundError(f"Arquivo não encontrado: {path}")
 
+        # len(doc) lê só a árvore de páginas, sem parsear conteúdo.
         with fitz.open(path) as doc:
             page_count = len(doc)
-            has_text = any(bool(page.get_text("blocks")) for page in doc)
-
-        if not has_text:
-            raise ValueError(
-                f"PDF sem texto selecionável: {path}. OCR não é suportado."
-            )
 
         logger.info("Loading PDF %s (%d páginas)", path.name, page_count)
 
@@ -89,13 +84,22 @@ class PDFParser(BaseParser):
         content: str = await loop.run_in_executor(
             None, pymupdf4llm.to_markdown, str(path)
         )
+        content = content.strip()
 
-        if not content or len(content.strip()) < 50:
+        # Markdown vazio = PDF sem camada de texto. A checagem antiga varria
+        # todas as páginas antes disso só para descobrir o que a própria
+        # extração já responde.
+        if not content:
+            raise ValueError(
+                f"PDF sem texto selecionável: {path}. OCR não é suportado."
+            )
+
+        if len(content) < 50:
             logger.warning("Conteúdo insuficiente extraído de %s", path)
             raise ValueError(f"Nenhum conteúdo extraído de: {path}")
 
         return Document(
-            page_content=content.strip(),
+            page_content=content,
             metadata={
                 "source": str(path),
                 "page_count": page_count,
