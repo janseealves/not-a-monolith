@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "NOT A PROJECT"
+    PROJECT_NAME: str = "NOT A MONOLITH"
     LLM_API_KEY: SecretStr | None = None
     LLM_MODEL: str = "qwen2.5:3b"
     LLM_MODEL_PROVIDER: str = "ollama"
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # prompt: sem isso o agente não sabe de quem/de que assunto os documentos
     # falam, e pergunta com pronome ("ele estudou onde?") virava pedido de
     # esclarecimento em vez de busca.
-    KNOWLEDGE_BASE_DESCRIPTION: str = "o currículo de Jansen Alves Raimundo"
+    KNOWLEDGE_BASE_DESCRIPTION: str = "o currículo de Jansen, engenheiro de IA"
     # "memory": estado só em RAM (perde no restart). "postgres": persiste threads.
     AGENT_CHECKPOINTER: Literal["memory", "postgres"] = "memory"
 
