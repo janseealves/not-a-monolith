@@ -37,3 +37,10 @@ services:
 
   ollama-pull:
     profiles: ["production"]
+
+  # Console web do MinIO, para inspecionar o bucket na mão. Só em dev — em prd
+  # não há motivo para expor o painel de administração.
+  minio:
+    ports:
+      # A 9000 já vem da base; aqui só o painel.
+      - "9001:9001"
