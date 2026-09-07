@@ -77,6 +77,7 @@ class PDFParser(BaseParser):
         # len(doc) lê só a árvore de páginas, sem parsear conteúdo.
         with fitz.open(path) as doc:
             page_count = len(doc)
+            title = (doc.metadata or {}).get("title", "").strip()
 
         logger.info("Loading PDF %s (%d páginas)", path.name, page_count)
 
@@ -102,6 +103,10 @@ class PDFParser(BaseParser):
             page_content=content,
             metadata={
                 "source": str(path),
+                # O título entra no embedding de cada chunk (ver _DOC_PROMPT do
+                # indexer) e é o que a citação mostra ao usuário — o nome do
+                # arquivo é bem melhor que o "none" que ficava aqui antes.
+                "title": title or path.stem,
                 "page_count": page_count,
                 "file_size": path.stat().st_size,
             },

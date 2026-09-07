@@ -33,8 +33,10 @@ class PostgresIndexer(BaseIndexer):
                 f"Nenhum chunk para indexar: {document.metadata.get('source')}"
             )
 
-        title = document.metadata.get("title") or "none"
         source = document.metadata.get("source", "")
+        # Sem título inferido, o próprio source serve: ele entra no embedding
+        # de cada chunk e na citação, e "none" não ajudava em nenhum dos dois.
+        title = document.metadata.get("title") or source
         content_hash = hashlib.sha256(document.page_content.encode("utf-8")).hexdigest()
 
         # Reaproveita: se o conteúdo já foi processado (em qualquer collection),
