@@ -23,6 +23,20 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: SecretStr | None = None
     POSTGRES_DB: str | None = "not-a-database-dev"
 
+    # ─── Object store (MinIO) ───
+    MINIO_ROOT_USER: str | None = None
+    MINIO_ROOT_PASSWORD: SecretStr | None = None
+    MINIO_BUCKET: str = "documents"
+    # Endpoint interno da rede do Compose: usado para ler e gravar objetos.
+    MINIO_ENDPOINT: str = "http://minio:9000"
+    # Host que o BROWSER alcança. A assinatura da presigned URL cobre o host, e
+    # assinar com o endpoint interno geraria uma URL que o cliente recebe como
+    # 403 sem nenhuma pista do motivo.
+    MINIO_PUBLIC_ENDPOINT: str = "http://localhost:9000"
+    # Validade da presigned URL. Curta o bastante para o link vazar pouco,
+    # longa o bastante para o usuário ler a resposta antes de clicar.
+    MINIO_URL_TTL_SECONDS: int = 900
+
     # ─── Agent ───
     # "memory": estado só em RAM (perde no restart). "postgres": persiste threads.
     AGENT_CHECKPOINTER: Literal["memory", "postgres"] = "memory"
