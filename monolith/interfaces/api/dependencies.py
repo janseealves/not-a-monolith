@@ -6,6 +6,7 @@ from monolith.modules.agents.chat.service import ChatService
 from monolith.modules.rag import crud
 from monolith.modules.rag.models import Collection
 from monolith.modules.rag.service import RAGService
+from monolith.shared.storage import ObjectStore
 
 
 def get_rag_service(request: Request) -> RAGService:
@@ -14,6 +15,10 @@ def get_rag_service(request: Request) -> RAGService:
 
 def get_chat_service(request: Request) -> ChatService:
     return request.app.state.chat_service
+
+
+def get_object_store(request: Request) -> ObjectStore:
+    return request.app.state.object_store
 
 
 async def get_collection(collection_id: uuid.UUID) -> Collection:

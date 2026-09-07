@@ -6,9 +6,10 @@ services:
   app:
     build:
       target: developer        # troca o estágio prod pelo de dev (todas as deps)
-    # localhost do container = host, pra alcançar o Ollama do PC em 11434.
-    # `ports`/`extra_hosts` passam a ser ignorados; Postgres vai por localhost:5432.
-    network_mode: host
+    # Sem `network_mode: host`: no Docker Desktop (WSL2/Windows) "host" é a VM
+    # interna do Docker, não a sua máquina — a porta 8000 não chegaria no host.
+    # Ficamos na rede bridge do Compose: `ports` do base vale e o app alcança o
+    # Postgres por `db:5432` e o Ollama do PC por `host.docker.internal:11434`.
     # Sobrescreve o command de prod: 1 worker + --reload (reinicia ao salvar arquivo).
     command: ["uv", "run", "uvicorn", "monolith.interfaces.api.main:app", "--host=0.0.0.0", "--port=8000", "--reload"]
     depends_on:
@@ -21,11 +22,9 @@ services:
       # sobrescrita pela .venv do host (que tem paths da sua máquina e quebraria).
       - /app/.venv
 
-  # host network pra alcançar o Postgres em localhost:5432, igual ao app.
   migrate:
     build:
       target: developer
-    network_mode: host
 
   db:
     ports:
@@ -38,3 +37,10 @@ services:
 
   ollama-pull:
     profiles: ["production"]
+
+  # Console web do MinIO, para inspecionar o bucket na mão. Só em dev — em prd
+  # não há motivo para expor o painel de administração.
+  minio:
+    ports:
+      # A 9000 já vem da base; aqui só o painel.
+      - "9001:9001"
