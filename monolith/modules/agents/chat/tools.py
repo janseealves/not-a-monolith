@@ -29,9 +29,11 @@ def make_rag_tool(rag: RAGService) -> BaseTool:
         if not docs:
             return "Nenhum documento relevante encontrado na base.", []
 
+        # Título, não o source: o source de um PDF é uma URI s3:// com um uuid,
+        # e o modelo repetia isso na resposta ao ser instruído a citar a fonte.
         content = "\n\n".join(
             f"[{i + 1}] {d.document.page_content} "
-            f"(fonte: {d.document.metadata.get('source', 'desconhecida')})"
+            f"(fonte: {d.document.metadata.get('title') or 'desconhecida'})"
             for i, d in enumerate(docs)
         )
         # artifact: dado estruturado que não vai pro contexto do LLM, só pro app.

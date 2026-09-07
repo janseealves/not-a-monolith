@@ -37,7 +37,10 @@ class ChatService:
             system_prompt=(
                 render_prompt("persona", project_name=settings.PROJECT_NAME)
                 + "\n\n"
-                + render_prompt("agent_tool_policy")
+                + render_prompt(
+                    "agent_tool_policy",
+                    knowledge_base=settings.KNOWLEDGE_BASE_DESCRIPTION,
+                )
             ),
         )
         return cls(agent)
