@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SourceInfo:
     source: str
+    title: str
     chunk_ids: list[str]
 
 
@@ -46,16 +47,21 @@ class AskResult:
 
 def build_sources(chunks: list[RetrievedDocument]) -> list[SourceInfo]:
     # agrupa por source: vários chunks costumam vir do mesmo documento.
-    chunk_ids_by_source: dict[str, list[str]] = {}
+    # O título vai junto porque o source de um PDF é uma URI s3:// com um uuid
+    # no nome — ilegível para quem lê a citação.
+    grouped: dict[str, SourceInfo] = {}
     for chunk in chunks:
         source = chunk.document.metadata.get("source", "desconhecida")
-        chunk_ids_by_source.setdefault(source, []).append(
-            chunk.document.metadata["chunk_id"]
+        info = grouped.setdefault(
+            source,
+            SourceInfo(
+                source=source,
+                title=chunk.document.metadata.get("title") or source,
+                chunk_ids=[],
+            ),
         )
-    return [
-        SourceInfo(source=source, chunk_ids=chunk_ids)
-        for source, chunk_ids in chunk_ids_by_source.items()
-    ]
+        info.chunk_ids.append(chunk.document.metadata["chunk_id"])
+    return list(grouped.values())
 
 
 class RAGService:
@@ -102,13 +108,16 @@ class RAGService:
         )
 
     async def ingest(
-        self, source: Source, collection_id: int, source_uri: str | None = None
+        self, source: Source, collection_id: int, metadata: dict | None = None
     ) -> uuid.UUID:
+        """Indexa a fonte. `metadata` sobrescreve o que o parser inferiu.
+
+        Num upload o parser só enxerga o arquivo temporário: quem sabe a fonte
+        durável e o nome real do arquivo é quem recebeu o request.
+        """
         document = await self._parser.load(source)
-        if source_uri is not None:
-            # O parser carimba de onde leu — num upload, isso é o arquivo
-            # temporário. Quem vai na citação é a fonte durável.
-            document.metadata["source"] = source_uri
+        if metadata:
+            document.metadata.update(metadata)
         chunks = self._chunker.split(document)
         return await self._indexer.index(document, chunks, collection_id)
 
@@ -131,7 +140,9 @@ class RAGService:
             tmp.write(data)
             tmp.flush()
             return await self.ingest(
-                LocalSource(path=Path(tmp.name)), collection_id, source_uri=uri
+                LocalSource(path=Path(tmp.name)),
+                collection_id,
+                metadata={"source": uri, "title": Path(filename).stem},
             )
 
     async def search(
