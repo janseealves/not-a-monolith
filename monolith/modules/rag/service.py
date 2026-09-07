@@ -167,8 +167,10 @@ class RAGService:
             yield "Desculpe, não encontrei informações relevantes para sua pergunta."
             return
 
+        # Título, não o source — ver a mesma troca em agents/chat/tools.py.
         context = "\n\n".join(
-            f"[{idx + 1}] {chunk.document.page_content} (fonte: {chunk.document.metadata.get('source', 'desconhecida')})"
+            f"[{idx + 1}] {chunk.document.page_content} "
+            f"(fonte: {chunk.document.metadata.get('title') or 'desconhecida'})"
             for idx, chunk in enumerate(chunks)
         )
 
