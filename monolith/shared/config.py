@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     MINIO_URL_TTL_SECONDS: int = 900
 
     # ─── Agent ───
+    # Descreve, em uma frase, o que existe na base de conhecimento. Vai para o
+    # prompt: sem isso o agente não sabe de quem/de que assunto os documentos
+    # falam, e pergunta com pronome ("ele estudou onde?") virava pedido de
+    # esclarecimento em vez de busca.
+    KNOWLEDGE_BASE_DESCRIPTION: str = "o currículo de Jansen Alves Raimundo"
     # "memory": estado só em RAM (perde no restart). "postgres": persiste threads.
     AGENT_CHECKPOINTER: Literal["memory", "postgres"] = "memory"
 
