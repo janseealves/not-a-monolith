@@ -1,0 +1,25 @@
+meta {
+  name: Inspect
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/v1/memory/users/{{userId}}
+  body: none
+  auth: none
+}
+
+docs {
+  Lado a lado, para cada memória do usuário: o que o MOTOR expõe dela
+  (engine_metadata, engine_history) e de onde ela veio segundo o LEDGER
+  (origins: turno, thread, sources do RAG e memórias injetadas no turno).
+
+  404 quando AGENT_MEMORY=none.
+}
+
+assert {
+  res.status: eq 200
+  res.body.engine: isString
+  res.body.memories: isArray
+}

@@ -46,6 +46,21 @@ class Settings(BaseSettings):
     # "memory": estado só em RAM (perde no restart). "postgres": persiste threads.
     AGENT_CHECKPOINTER: Literal["memory", "postgres"] = "memory"
 
+    # ─── Memória de longo prazo (entre threads, por usuário) ───
+    # Não confundir com o checkpointer: aquele guarda UMA conversa; este é o
+    # motor que extrai "fatos" das conversas e os devolve em outras.
+    # "none" é o baseline: agente sem memória e sem ledger.
+    AGENT_MEMORY: Literal["none", "mem0"] = "none"
+    # Quantas memórias o hook injeta no prompt a cada turno.
+    MEMORY_TOP_K: int = 5
+    # Se o turn_id/thread_id do ledger vai como metadata para o motor. False mede
+    # a proveniência NATIVA do motor; True mede se ela é DERIVÁVEL quando quem
+    # integra se dá ao trabalho de instrumentar.
+    MEMORY_PROPAGATE_PROVENANCE: bool = False
+    # O mem0 guarda o histórico de eventos num SQLite separado dos vetores. Fora
+    # de um volume, o container o perde no restart — e o histórico junto.
+    MEM0_HISTORY_DB_PATH: str = ".mem0/history.db"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

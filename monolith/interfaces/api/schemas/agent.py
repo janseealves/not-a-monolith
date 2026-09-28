@@ -13,3 +13,8 @@ class ChatRequest(BaseModel):
         description="Collection que escopa a busca do agente. Sem ela, o agente "
         "conversa sem acesso à base de conhecimento.",
     )
+    user_id: uuid.UUID | None = Field(
+        None,
+        description="Dono da memória de longo prazo, que atravessa threads. Sem ele, "
+        "o agente não lembra nem grava nada entre conversas.",
+    )

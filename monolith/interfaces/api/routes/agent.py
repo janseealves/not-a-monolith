@@ -25,5 +25,7 @@ async def chat(service: ChatServiceDeps, request: ChatRequest):
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Collection não encontrada.")
         collection_pk = collection.id
 
-    stream = service.astream(request.message, str(request.thread_id), collection_pk)
+    stream = service.astream(
+        request.message, str(request.thread_id), collection_pk, request.user_id
+    )
     return StreamingResponse(sse_stream_mixed(stream), media_type="text/event-stream")

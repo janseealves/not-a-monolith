@@ -3,6 +3,7 @@ import uuid
 from fastapi import HTTPException, Request, status
 
 from monolith.modules.agents.chat.service import ChatService
+from monolith.modules.memory.service import MemoryService
 from monolith.modules.rag import crud
 from monolith.modules.rag.models import Collection
 from monolith.modules.rag.service import RAGService
@@ -19,6 +20,15 @@ def get_chat_service(request: Request) -> ChatService:
 
 def get_object_store(request: Request) -> ObjectStore:
     return request.app.state.object_store
+
+
+def get_memory_service(request: Request) -> MemoryService:
+    memory = request.app.state.memory_service
+    if memory is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, "Memória desativada (AGENT_MEMORY=none)."
+        )
+    return memory
 
 
 async def get_collection(collection_id: uuid.UUID) -> Collection:

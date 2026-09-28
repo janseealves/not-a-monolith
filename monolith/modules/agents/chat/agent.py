@@ -1,13 +1,36 @@
 from collections.abc import AsyncIterator
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import ModelRequest, dynamic_prompt
 from langchain.chat_models import BaseChatModel
 from langchain_core.messages import AIMessageChunk, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.config import get_config
 
 from monolith.modules.agents.base import BaseAgent
+from monolith.shared.prompts import render_prompt
 from monolith.shared.streaming import SourcesChunk
+
+
+@dynamic_prompt
+def _with_memories(request: ModelRequest) -> str:
+    """Anexa ao system prompt as memórias recuperadas para este turno.
+
+    Vão no system prompt, e não como mensagem, porque o checkpointer persiste as
+    mensagens da thread: a memória viraria parte da conversa e o motor a
+    re-extrairia no turno seguinte como se fosse fato novo.
+    """
+    memories = get_config()["configurable"].get("memories")
+    if not memories:
+        return request.system_prompt
+    return (
+        request.system_prompt
+        + "\n\n"
+        + render_prompt(
+            "agent_memories", memories="\n".join(f"- {m}" for m in memories)
+        )
+    )
 
 
 class ChatAgent(BaseAgent):
@@ -26,6 +49,7 @@ class ChatAgent(BaseAgent):
             tools,
             system_prompt=system_prompt,
             checkpointer=checkpointer,
+            middleware=[_with_memories],
         )
 
     async def astream(
@@ -33,10 +57,13 @@ class ChatAgent(BaseAgent):
         message: str,
         thread_id: str,
         collection_id: int | None = None,
+        memories: list[str] | None = None,
     ) -> AsyncIterator[str | SourcesChunk]:
         config = {"configurable": {"thread_id": thread_id}}
         if collection_id is not None:
             config["configurable"]["collection_id"] = collection_id
+        if memories:
+            config["configurable"]["memories"] = memories
 
         # stream_mode="messages" emite (chunk, metadata) por token/mensagem. Tokens
         # de texto do LLM viram str; resultado de tool com artifact (ex: a tool de
