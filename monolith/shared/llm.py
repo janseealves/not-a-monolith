@@ -1,4 +1,6 @@
 from langchain.chat_models import BaseChatModel, init_chat_model
+from langchain_core.embeddings import Embeddings
+from langchain_ollama import OllamaEmbeddings
 
 from monolith.shared.config import Settings
 
@@ -16,4 +18,13 @@ def build_chat_model(settings: Settings) -> BaseChatModel:
         model_provider=settings.LLM_MODEL_PROVIDER,
         base_url=settings.LLM_BASE_URL,
         client_kwargs=client_kwargs,
+    )
+
+
+def build_embeddings(settings: Settings) -> Embeddings:
+    """Embeddings self-hosted. RAG e memória usam o mesmo modelo: comparar motores
+    de memória só é justo se nenhum deles ganha um embedding diferente."""
+    return OllamaEmbeddings(
+        model=settings.EMBEDDINGS_MODEL,
+        base_url=settings.EMBEDDINGS_BASE_URL,
     )

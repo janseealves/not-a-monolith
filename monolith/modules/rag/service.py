@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from langchain.chat_models import BaseChatModel
-from langchain_ollama import OllamaEmbeddings
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from monolith.modules.rag.ingestion.base import (
@@ -25,7 +24,7 @@ from monolith.modules.rag.retrieval.retriever import SemanticRetriever
 from monolith.shared.config import Settings
 from monolith.shared.config import settings as default_settings
 from monolith.shared.db.session import SessionLocal
-from monolith.shared.llm import build_chat_model
+from monolith.shared.llm import build_chat_model, build_embeddings
 from monolith.shared.prompts import render_prompt
 from monolith.shared.storage import ObjectStore
 
@@ -91,10 +90,7 @@ class RAGService:
     ) -> "RAGService":
         settings = settings or default_settings
         session_factory = session_factory or SessionLocal
-        embeddings = OllamaEmbeddings(
-            model=settings.EMBEDDINGS_MODEL,
-            base_url=settings.EMBEDDINGS_BASE_URL,
-        )
+        embeddings = build_embeddings(settings)
 
         # único lugar do módulo que conhece as classes concretas
         return cls(
