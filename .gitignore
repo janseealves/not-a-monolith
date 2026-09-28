@@ -224,3 +224,6 @@ __marimo__/
 
 # Notebooks de exploração local — não versionar
 notebooks/
+
+# Estado local do mem0 (histórico SQLite) — dado de experimento, não código
+.mem0/

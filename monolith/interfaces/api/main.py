@@ -6,11 +6,13 @@ from fastapi import FastAPI
 
 from monolith.interfaces.api.routes.agent import router as agent_router
 from monolith.interfaces.api.routes.collections import router as collections_router
+from monolith.interfaces.api.routes.memory import router as memory_router
 from monolith.interfaces.api.routes.meta import router as meta_router
 from monolith.interfaces.api.routes.rag import documents_router
 from monolith.interfaces.api.routes.rag import router as rag_router
 from monolith.modules.agents.chat.service import ChatService
 from monolith.modules.agents.checkpointer import build_agent_checkpointer
+from monolith.modules.memory.service import MemoryService
 from monolith.modules.rag.service import RAGService
 from monolith.shared.config import settings, setup_logger
 from monolith.shared.storage import ObjectStore
@@ -34,8 +36,15 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as stack:
         logger.info("Initializing Agent service...")
         checkpointer = await stack.enter_async_context(build_agent_checkpointer())
+        # "none" é o baseline do experimento: agente sem memória de longo prazo.
+        app.state.memory_service = (
+            MemoryService.with_defaults() if settings.AGENT_MEMORY != "none" else None
+        )
+        logger.info("Agent memory engine: %s", settings.AGENT_MEMORY)
         app.state.chat_service = ChatService.with_defaults(
-            rag=app.state.rag_service, checkpointer=checkpointer
+            rag=app.state.rag_service,
+            checkpointer=checkpointer,
+            memory=app.state.memory_service,
         )
         logger.info("Agent service ready.")
 
@@ -54,3 +63,4 @@ app.include_router(collections_router, prefix="/v1")
 app.include_router(rag_router, prefix="/v1")
 app.include_router(documents_router, prefix="/v1")
 app.include_router(agent_router, prefix="/v1")
+app.include_router(memory_router, prefix="/v1")
